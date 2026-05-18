@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
     StyleSheet,
@@ -8,16 +8,55 @@ import {
     View,
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export default function CadastroScreen() {
 
   const [nomePet, setNomePet] = useState('');
   const [idadePet, setIdadePet] = useState('');
   const [vacinaPet, setVacinaPet] = useState('');
 
+  useEffect(() => {
+    carregarDados();
+  }, []);
+
+  async function salvarDados() {
+
+    const dadosPet = {
+      nomePet,
+      idadePet,
+      vacinaPet,
+    };
+
+    await AsyncStorage.setItem(
+      '@pet',
+      JSON.stringify(dadosPet)
+    );
+
+  }
+
+  async function carregarDados() {
+
+    const dadosSalvos = await AsyncStorage.getItem('@pet');
+
+    if (dadosSalvos) {
+
+      const petConvertido = JSON.parse(dadosSalvos);
+
+      setNomePet(petConvertido.nomePet);
+      setIdadePet(petConvertido.idadePet);
+      setVacinaPet(petConvertido.vacinaPet);
+
+    }
+
+  }
+
   function limparFormulario() {
+
     setNomePet('');
     setIdadePet('');
     setVacinaPet('');
+
   }
 
   return (
@@ -45,6 +84,15 @@ export default function CadastroScreen() {
         value={vacinaPet}
         onChangeText={setVacinaPet}
       />
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={salvarDados}
+      >
+        <Text style={styles.buttonText}>
+          Salvar Dados
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
@@ -108,7 +156,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 15,
   },
 
   buttonText: {
@@ -121,6 +169,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
+    marginTop: 20,
   },
 
   resultadoTitulo: {
