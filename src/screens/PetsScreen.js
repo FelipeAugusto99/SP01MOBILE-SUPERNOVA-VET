@@ -1,18 +1,35 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function PetsScreen() {
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Pets Cadastrados</Text>
 
-      <Text style={styles.card}>Thor</Text>
-      <Text style={styles.card}>Luna</Text>
-      <Text style={styles.card}>Mel</Text>
+      <Text style={styles.title}>
+        Pets Cadastrados
+      </Text>
+
+      <View style={styles.card}>
+        <Text style={styles.nome}>🐶 Thor</Text>
+        <Text>Golden Retriever</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.nome}>🐱 Luna</Text>
+        <Text>Siamês</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.nome}>🐶 Mel</Text>
+        <Text>Shih-tzu</Text>
+      </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: '#F4F3FF',
@@ -20,18 +37,23 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#6C63FF',
-    marginBottom: 20,
+    marginBottom: 25,
   },
 
   card: {
-    backgroundColor: '#6C63FF',
-    color: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    fontSize: 18,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 15,
   },
+
+  nome: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+
 });
