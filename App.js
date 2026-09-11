@@ -5,8 +5,11 @@ import CadastroScreen from './src/screens/CadastroScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import MedicamentosScreen from './src/screens/MedicamentosScreen';
+import PetDetailsScreen from './src/screens/PetDetailsScreen';
 import PetFormScreen from './src/screens/PetFormScreen';
 import PetsScreen from './src/screens/PetsScreen';
+import TutorDetailsScreen from './src/screens/TutorDetailsScreen';
+import TutorFormScreen from './src/screens/TutorFormScreen';
 import TutoresScreen from './src/screens/TutoresScreen';
 import VacinasScreen from './src/screens/VacinasScreen';
 
@@ -49,6 +52,12 @@ function AppNavigation() {
       />
 
       <Stack.Screen
+        name="PetDetails"
+        component={PetDetailsScreen}
+        options={{ title: 'Detalhes do Pet' }}
+      />
+
+      <Stack.Screen
         name="PetForm"
         component={PetFormScreen}
         options={{ title: 'Cadastrar Pet' }}
@@ -57,6 +66,18 @@ function AppNavigation() {
       <Stack.Screen
         name="Tutores"
         component={TutoresScreen}
+      />
+
+      <Stack.Screen
+        name="TutorDetails"
+        component={TutorDetailsScreen}
+        options={{ title: 'Detalhes do Tutor' }}
+      />
+
+      <Stack.Screen
+        name="TutorForm"
+        component={TutorFormScreen}
+        options={{ title: 'Cadastrar Tutor' }}
       />
 
       <Stack.Screen
