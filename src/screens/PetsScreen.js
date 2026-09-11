@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -29,9 +30,11 @@ export default function PetsScreen({ navigation }) {
     }
   }
 
-  useEffect(() => {
-    carregarPets();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      carregarPets();
+    }, [])
+  );
 
   function getEmoji(especie) {
     if (especie?.toLowerCase() === 'gato') {

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -9,18 +10,50 @@ import {
 } from 'react-native';
 
 import { criarPet } from '../services/petsService';
+import { listarTutores } from '../services/tutoresService';
 
 export default function PetFormScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [idade, setIdade] = useState('');
   const [especie, setEspecie] = useState('');
   const [nivelRisco, setNivelRisco] = useState('BAIXO');
+
+  const [tutores, setTutores] = useState([]);
+  const [tutorSelecionado, setTutorSelecionado] = useState(null);
+
+  const [carregandoTutores, setCarregandoTutores] = useState(true);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+
+  async function carregarTutores() {
+    try {
+      setCarregandoTutores(true);
+
+      const dados = await listarTutores();
+      setTutores(dados);
+
+      if (dados.length > 0) {
+        setTutorSelecionado(dados[0]);
+      }
+    } catch (error) {
+      setErro('Não foi possível carregar os tutores.');
+    } finally {
+      setCarregandoTutores(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarTutores();
+  }, []);
 
   async function cadastrarPet() {
     if (!nome || !idade || !especie) {
       setErro('Preencha todos os campos.');
+      return;
+    }
+
+    if (!tutorSelecionado) {
+      setErro('Selecione um tutor.');
       return;
     }
 
@@ -34,7 +67,10 @@ export default function PetFormScreen({ navigation }) {
         especie,
         nivelRisco,
         tutor: {
-          id: 1,
+          id: tutorSelecionado.id,
+          nome: tutorSelecionado.nome,
+          email: tutorSelecionado.email,
+          telefone: tutorSelecionado.telefone,
         },
       });
 
@@ -47,7 +83,11 @@ export default function PetFormScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+      showsVerticalScrollIndicator={false}
+    >
       <Text style={styles.titulo}>Cadastrar Pet</Text>
 
       <Text style={styles.subtitulo}>
@@ -106,12 +146,57 @@ export default function PetFormScreen({ navigation }) {
         ))}
       </View>
 
+      <Text style={styles.label}>Tutor</Text>
+
+      {carregandoTutores ? (
+        <View style={styles.carregandoTutores}>
+          <ActivityIndicator color="#6C63FF" />
+          <Text style={styles.textoCarregando}>
+            Carregando tutores...
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.tutores}>
+          {tutores.map((tutor) => (
+            <TouchableOpacity
+              key={tutor.id}
+              style={[
+                styles.botaoTutor,
+                tutorSelecionado?.id === tutor.id &&
+                  styles.botaoTutorSelecionado,
+              ]}
+              onPress={() => setTutorSelecionado(tutor)}
+            >
+              <Text
+                style={[
+                  styles.nomeTutor,
+                  tutorSelecionado?.id === tutor.id &&
+                    styles.nomeTutorSelecionado,
+                ]}
+              >
+                {tutor.nome}
+              </Text>
+
+              <Text
+                style={[
+                  styles.emailTutor,
+                  tutorSelecionado?.id === tutor.id &&
+                    styles.emailTutorSelecionado,
+                ]}
+              >
+                {tutor.email}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
       {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
       <TouchableOpacity
         style={styles.botao}
         onPress={cadastrarPet}
-        disabled={carregando}
+        disabled={carregando || carregandoTutores}
       >
         {carregando ? (
           <ActivityIndicator color="#fff" />
@@ -119,15 +204,19 @@ export default function PetFormScreen({ navigation }) {
           <Text style={styles.textoBotao}>Cadastrar Pet</Text>
         )}
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 25,
     backgroundColor: '#fff',
+  },
+
+  conteudo: {
+    padding: 25,
+    paddingBottom: 40,
   },
 
   titulo: {
@@ -188,6 +277,56 @@ const styles = StyleSheet.create({
 
   textoRiscoSelecionado: {
     color: '#fff',
+  },
+
+  tutores: {
+    marginBottom: 25,
+  },
+
+  botaoTutor: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+
+  botaoTutorSelecionado: {
+    borderColor: '#6C63FF',
+    backgroundColor: '#EEECFF',
+  },
+
+  nomeTutor: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#403B5C',
+  },
+
+  nomeTutorSelecionado: {
+    color: '#6C63FF',
+  },
+
+  emailTutor: {
+    fontSize: 12,
+    color: '#858195',
+    marginTop: 4,
+  },
+
+  emailTutorSelecionado: {
+    color: '#6C63FF',
+  },
+
+  carregandoTutores: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+    padding: 15,
+  },
+
+  textoCarregando: {
+    marginLeft: 10,
+    color: '#77738F',
   },
 
   botao: {
