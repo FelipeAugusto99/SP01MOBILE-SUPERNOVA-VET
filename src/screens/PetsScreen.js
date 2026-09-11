@@ -4,12 +4,13 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
 import { listarPets } from '../services/petsService';
 
-export default function PetsScreen() {
+export default function PetsScreen({ navigation }) {
   const [pets, setPets] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -130,10 +131,19 @@ export default function PetsScreen() {
           </Text>
         </View>
 
-        <View style={styles.contador}>
-          <Text style={styles.numero}>{pets.length}</Text>
-          <Text style={styles.contadorTexto}>pets</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.botaoAdicionar}
+          onPress={() => navigation.navigate('PetForm')}
+        >
+          <Text style={styles.textoBotaoAdicionar}>
+            + Adicionar
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.contador}>
+        <Text style={styles.numero}>{pets.length}</Text>
+        <Text style={styles.contadorTexto}>pets</Text>
       </View>
 
       <FlatList
@@ -159,7 +169,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
 
   titulo: {
@@ -174,6 +184,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
+  botaoAdicionar: {
+    backgroundColor: '#6C63FF',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+
+  textoBotaoAdicionar: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+
   contador: {
     backgroundColor: '#6C63FF',
     width: 58,
@@ -181,6 +204,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'flex-end',
+    marginBottom: 14,
   },
 
   numero: {
