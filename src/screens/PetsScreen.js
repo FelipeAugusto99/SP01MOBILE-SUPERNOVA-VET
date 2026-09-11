@@ -58,7 +58,15 @@ export default function PetsScreen({ navigation }) {
 
   function renderPet({ item }) {
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.8}
+        onPress={() =>
+          navigation.navigate('PetDetails', {
+            pet: item,
+          })
+        }
+      >
         <View style={styles.cardTopo}>
           <View style={styles.petInfo}>
             <View style={styles.icone}>
@@ -68,7 +76,9 @@ export default function PetsScreen({ navigation }) {
             </View>
 
             <View>
-              <Text style={styles.nome}>{item.nome}</Text>
+              <Text style={styles.nome}>
+                {item.nome}
+              </Text>
 
               <Text style={styles.especie}>
                 {item.especie} • {item.idade} anos
@@ -79,7 +89,11 @@ export default function PetsScreen({ navigation }) {
           <View
             style={[
               styles.risco,
-              { backgroundColor: getCorRisco(item.nivelRisco) },
+              {
+                backgroundColor: getCorRisco(
+                  item.nivelRisco
+                ),
+              },
             ]}
           >
             <Text style={styles.riscoTexto}>
@@ -90,7 +104,9 @@ export default function PetsScreen({ navigation }) {
 
         <View style={styles.linha} />
 
-        <Text style={styles.tutorTitulo}>Tutor</Text>
+        <Text style={styles.tutorTitulo}>
+          Tutor
+        </Text>
 
         <Text style={styles.tutorNome}>
           {item.tutor?.nome || 'Não informado'}
@@ -99,14 +115,21 @@ export default function PetsScreen({ navigation }) {
         <Text style={styles.tutorEmail}>
           {item.tutor?.email || 'E-mail não informado'}
         </Text>
-      </View>
+
+        <Text style={styles.verDetalhes}>
+          Toque para ver detalhes →
+        </Text>
+      </TouchableOpacity>
     );
   }
 
   if (carregando) {
     return (
       <View style={styles.centralizado}>
-        <ActivityIndicator size="large" color="#6C63FF" />
+        <ActivityIndicator
+          size="large"
+          color="#6C63FF"
+        />
 
         <Text style={styles.carregando}>
           Carregando pets...
@@ -118,7 +141,9 @@ export default function PetsScreen({ navigation }) {
   if (erro) {
     return (
       <View style={styles.centralizado}>
-        <Text style={styles.erro}>{erro}</Text>
+        <Text style={styles.erro}>
+          {erro}
+        </Text>
       </View>
     );
   }
@@ -127,7 +152,9 @@ export default function PetsScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.cabecalho}>
         <View>
-          <Text style={styles.titulo}>Meus Pets</Text>
+          <Text style={styles.titulo}>
+            Meus Pets
+          </Text>
 
           <Text style={styles.subtitulo}>
             Animais cadastrados no sistema
@@ -136,7 +163,9 @@ export default function PetsScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.botaoAdicionar}
-          onPress={() => navigation.navigate('PetForm')}
+          onPress={() =>
+            navigation.navigate('PetForm')
+          }
         >
           <Text style={styles.textoBotaoAdicionar}>
             + Adicionar
@@ -145,8 +174,13 @@ export default function PetsScreen({ navigation }) {
       </View>
 
       <View style={styles.contador}>
-        <Text style={styles.numero}>{pets.length}</Text>
-        <Text style={styles.contadorTexto}>pets</Text>
+        <Text style={styles.numero}>
+          {pets.length}
+        </Text>
+
+        <Text style={styles.contadorTexto}>
+          pets
+        </Text>
       </View>
 
       <FlatList
@@ -231,6 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     marginBottom: 14,
+
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -315,6 +350,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#858195',
     marginTop: 3,
+  },
+
+  verDetalhes: {
+    color: '#6C63FF',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 12,
+    textAlign: 'right',
   },
 
   centralizado: {

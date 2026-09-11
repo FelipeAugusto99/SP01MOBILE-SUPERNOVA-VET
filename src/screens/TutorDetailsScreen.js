@@ -1,63 +1,15 @@
-import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 
-import { buscarTutor } from '../services/tutoresService';
-
-export default function TutorDetailsScreen({ route, navigation }) {
-  const { tutorId } = route.params;
-
-  const [tutor, setTutor] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
-
-  async function carregarTutor() {
-    try {
-      setCarregando(true);
-      setErro('');
-
-      const dados = await buscarTutor(tutorId);
-      setTutor(dados);
-    } catch (error) {
-      setErro('Não foi possível carregar o tutor.');
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregarTutor();
-  }, []);
-
-  if (carregando) {
-    return (
-      <View style={styles.centralizado}>
-        <ActivityIndicator
-          size="large"
-          color="#6C63FF"
-        />
-
-        <Text style={styles.carregando}>
-          Carregando tutor...
-        </Text>
-      </View>
-    );
-  }
-
-  if (erro) {
-    return (
-      <View style={styles.centralizado}>
-        <Text style={styles.erro}>
-          {erro}
-        </Text>
-      </View>
-    );
-  }
+export default function TutorDetailsScreen({
+  route,
+  navigation,
+}) {
+  const { tutor } = route.params;
 
   return (
     <View style={styles.container}>
@@ -124,26 +76,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F5FF',
     padding: 25,
     alignItems: 'center',
-  },
-
-  centralizado: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F6F5FF',
-  },
-
-  carregando: {
-    marginTop: 12,
-    color: '#77738F',
-    fontSize: 14,
-  },
-
-  erro: {
-    color: '#D32F2F',
-    fontSize: 16,
-    textAlign: 'center',
   },
 
   icone: {

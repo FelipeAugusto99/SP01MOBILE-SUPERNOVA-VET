@@ -38,7 +38,15 @@ export default function TutoresScreen({ navigation }) {
 
   function renderTutor({ item }) {
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.8}
+        onPress={() =>
+          navigation.navigate('TutorDetails', {
+            tutor: item,
+          })
+        }
+      >
         <View style={styles.icone}>
           <Text style={styles.iconeTexto}>
             {item.nome?.charAt(0).toUpperCase()}
@@ -46,7 +54,9 @@ export default function TutoresScreen({ navigation }) {
         </View>
 
         <View style={styles.informacoes}>
-          <Text style={styles.nome}>{item.nome}</Text>
+          <Text style={styles.nome}>
+            {item.nome}
+          </Text>
 
           <Text style={styles.email}>
             {item.email}
@@ -54,6 +64,10 @@ export default function TutoresScreen({ navigation }) {
 
           <Text style={styles.telefone}>
             {item.telefone}
+          </Text>
+
+          <Text style={styles.verDetalhes}>
+            Toque para ver detalhes →
           </Text>
         </View>
 
@@ -64,14 +78,17 @@ export default function TutoresScreen({ navigation }) {
             </Text>
           </View>
         ) : null}
-      </View>
+      </TouchableOpacity>
     );
   }
 
   if (carregando) {
     return (
       <View style={styles.centralizado}>
-        <ActivityIndicator size="large" color="#6C63FF" />
+        <ActivityIndicator
+          size="large"
+          color="#6C63FF"
+        />
 
         <Text style={styles.carregando}>
           Carregando tutores...
@@ -83,7 +100,9 @@ export default function TutoresScreen({ navigation }) {
   if (erro) {
     return (
       <View style={styles.centralizado}>
-        <Text style={styles.erro}>{erro}</Text>
+        <Text style={styles.erro}>
+          {erro}
+        </Text>
       </View>
     );
   }
@@ -92,7 +111,9 @@ export default function TutoresScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.cabecalho}>
         <View>
-          <Text style={styles.titulo}>Tutores</Text>
+          <Text style={styles.titulo}>
+            Tutores
+          </Text>
 
           <Text style={styles.subtitulo}>
             Pessoas cadastradas no sistema
@@ -101,7 +122,9 @@ export default function TutoresScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.botaoAdicionar}
-          onPress={() => navigation.navigate('TutorForm')}
+          onPress={() =>
+            navigation.navigate('TutorForm')
+          }
         >
           <Text style={styles.textoBotao}>
             + Adicionar
@@ -110,7 +133,9 @@ export default function TutoresScreen({ navigation }) {
       </View>
 
       <View style={styles.contador}>
-        <Text style={styles.numero}>{tutores.length}</Text>
+        <Text style={styles.numero}>
+          {tutores.length}
+        </Text>
 
         <Text style={styles.contadorTexto}>
           tutores
@@ -201,6 +226,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
+
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -247,6 +273,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9995AA',
     marginTop: 3,
+  },
+
+  verDetalhes: {
+    color: '#6C63FF',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 8,
   },
 
   perfil: {

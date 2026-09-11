@@ -1,38 +1,12 @@
-import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 
-import { buscarPet } from '../services/petsService';
-
 export default function PetDetailsScreen({ route, navigation }) {
-  const { petId } = route.params;
-
-  const [pet, setPet] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
-
-  async function carregarPet() {
-    try {
-      setCarregando(true);
-      setErro('');
-
-      const dados = await buscarPet(petId);
-      setPet(dados);
-    } catch (error) {
-      setErro('Não foi possível carregar o pet.');
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useEffect(() => {
-    carregarPet();
-  }, []);
+  const { pet } = route.params;
 
   function getEmoji(especie) {
     if (especie?.toLowerCase() === 'gato') {
@@ -54,31 +28,6 @@ export default function PetDetailsScreen({ route, navigation }) {
     return '#43A047';
   }
 
-  if (carregando) {
-    return (
-      <View style={styles.centralizado}>
-        <ActivityIndicator
-          size="large"
-          color="#6C63FF"
-        />
-
-        <Text style={styles.carregando}>
-          Carregando pet...
-        </Text>
-      </View>
-    );
-  }
-
-  if (erro) {
-    return (
-      <View style={styles.centralizado}>
-        <Text style={styles.erro}>
-          {erro}
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.icone}>
@@ -94,7 +43,11 @@ export default function PetDetailsScreen({ route, navigation }) {
       <View
         style={[
           styles.risco,
-          { backgroundColor: getCorRisco(pet.nivelRisco) },
+          {
+            backgroundColor: getCorRisco(
+              pet.nivelRisco
+            ),
+          },
         ]}
       >
         <Text style={styles.riscoTexto}>
@@ -134,6 +87,14 @@ export default function PetDetailsScreen({ route, navigation }) {
         <Text style={styles.valor}>
           {pet.tutor?.email || 'Não informado'}
         </Text>
+
+        <Text style={styles.label}>
+          Telefone do tutor
+        </Text>
+
+        <Text style={styles.valor}>
+          {pet.tutor?.telefone || 'Não informado'}
+        </Text>
       </View>
 
       <TouchableOpacity
@@ -167,26 +128,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F5FF',
     padding: 25,
     alignItems: 'center',
-  },
-
-  centralizado: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F6F5FF',
-  },
-
-  carregando: {
-    marginTop: 12,
-    color: '#77738F',
-    fontSize: 14,
-  },
-
-  erro: {
-    color: '#D32F2F',
-    fontSize: 16,
-    textAlign: 'center',
   },
 
   icone: {
