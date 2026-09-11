@@ -7,6 +7,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import MedicamentosScreen from './src/screens/MedicamentosScreen';
 import PetFormScreen from './src/screens/PetFormScreen';
 import PetsScreen from './src/screens/PetsScreen';
+import TutoresScreen from './src/screens/TutoresScreen';
 import VacinasScreen from './src/screens/VacinasScreen';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -37,16 +38,41 @@ function AppNavigation() {
         headerTintColor: '#fff',
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Pets" component={PetsScreen} />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+      />
+
+      <Stack.Screen
+        name="Pets"
+        component={PetsScreen}
+      />
+
       <Stack.Screen
         name="PetForm"
         component={PetFormScreen}
         options={{ title: 'Cadastrar Pet' }}
       />
-      <Stack.Screen name="Vacinas" component={VacinasScreen} />
-      <Stack.Screen name="Medicamentos" component={MedicamentosScreen} />
-      <Stack.Screen name="Cadastro" component={CadastroScreen} />
+
+      <Stack.Screen
+        name="Tutores"
+        component={TutoresScreen}
+      />
+
+      <Stack.Screen
+        name="Vacinas"
+        component={VacinasScreen}
+      />
+
+      <Stack.Screen
+        name="Medicamentos"
+        component={MedicamentosScreen}
+      />
+
+      <Stack.Screen
+        name="Cadastro"
+        component={CadastroScreen}
+      />
     </Stack.Navigator>
   );
 }
