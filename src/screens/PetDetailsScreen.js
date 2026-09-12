@@ -1,12 +1,20 @@
+import { useState } from 'react';
+
 import {
+    ActivityIndicator,
+    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 
+import { excluirPet } from '../services/petsService';
+
 export default function PetDetailsScreen({ route, navigation }) {
   const { pet } = route.params;
+
+  const [excluindo, setExcluindo] = useState(false);
 
   function getEmoji(especie) {
     if (especie?.toLowerCase() === 'gato') {
@@ -26,6 +34,46 @@ export default function PetDetailsScreen({ route, navigation }) {
     }
 
     return '#43A047';
+  }
+
+  function deletarPet() {
+    Alert.alert(
+      'Excluir Pet',
+      `Tem certeza que deseja excluir ${pet.nome}?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          async onPress() {
+            try {
+              setExcluindo(true);
+
+              await excluirPet(pet.id);
+
+              navigation.goBack();
+            } catch (error) {
+              if (error.response?.status === 403) {
+                Alert.alert(
+                  'Sem permissão',
+                  'Apenas usuários administradores podem excluir pets.'
+                );
+              } else {
+                Alert.alert(
+                  'Erro',
+                  'Não foi possível excluir o pet.'
+                );
+              }
+            } finally {
+              setExcluindo(false);
+            }
+          },
+        },
+      ]
+    );
   }
 
   return (
@@ -108,6 +156,20 @@ export default function PetDetailsScreen({ route, navigation }) {
         <Text style={styles.textoBotaoEditar}>
           Editar Pet
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.botaoExcluir}
+        onPress={deletarPet}
+        disabled={excluindo}
+      >
+        {excluindo ? (
+          <ActivityIndicator color="#D32F2F" />
+        ) : (
+          <Text style={styles.textoBotaoExcluir}>
+            Excluir Pet
+          </Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -208,6 +270,22 @@ const styles = StyleSheet.create({
 
   textoBotaoEditar: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  botaoExcluir: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#D32F2F',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+
+  textoBotaoExcluir: {
+    color: '#D32F2F',
     fontSize: 16,
     fontWeight: 'bold',
   },
