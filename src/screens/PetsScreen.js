@@ -18,12 +18,14 @@ export default function PetsScreen({ navigation }) {
   } = useQuery({
     queryKey: ['pets'],
     queryFn: listarPets,
+    refetchOnMount: true,
   });
 
   if (isLoading) {
     return (
       <View style={styles.centralizado}>
         <ActivityIndicator size="large" color="#6C63FF" />
+
         <Text style={styles.carregando}>
           Carregando pets...
         </Text>
@@ -170,7 +172,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
