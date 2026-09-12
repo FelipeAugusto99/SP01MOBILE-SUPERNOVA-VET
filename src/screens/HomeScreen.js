@@ -1,16 +1,49 @@
 import {
+  useFocusEffect,
+} from '@react-navigation/native';
+
+import {
+  useQuery,
+} from '@tanstack/react-query';
+
+import {
+  useCallback,
+} from 'react';
+
+import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
+import api from '../services/api';
+
 export default function HomeScreen({ navigation }) {
+  const {
+    data: petsCriticos = [],
+    isLoading,
+    isError,
+    refetch: refetchPetsCriticos,
+  } = useQuery({
+    queryKey: ['pets-criticos'],
+    queryFn: async () => {
+      const response = await api.get('/pets/criticos');
+      return response.data;
+    },
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchPetsCriticos();
+    }, [refetchPetsCriticos])
+  );
+
   return (
     <View style={styles.container}>
-
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerTexto}>
           <Text style={styles.welcome}>
             Bem-vindo ao
           </Text>
@@ -28,8 +61,8 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <Text style={styles.subtitle}>
-        Gerencie os dados da clínica e acompanhe
-        os animais cadastrados.
+        Gerencie os pets e tutores da clínica
+        em um só lugar.
       </Text>
 
       <Text style={styles.sectionTitle}>
@@ -37,9 +70,9 @@ export default function HomeScreen({ navigation }) {
       </Text>
 
       <View style={styles.principalContainer}>
-
         <TouchableOpacity
           style={styles.principalCard}
+          activeOpacity={0.8}
           onPress={() => navigation.navigate('Pets')}
         >
           <View style={styles.cardIcon}>
@@ -54,7 +87,7 @@ export default function HomeScreen({ navigation }) {
             </Text>
 
             <Text style={styles.cardDescription}>
-              Gerencie os animais cadastrados
+              Cadastre, edite e acompanhe os animais
             </Text>
           </View>
 
@@ -65,6 +98,7 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.principalCard}
+          activeOpacity={0.8}
           onPress={() => navigation.navigate('Tutores')}
         >
           <View style={styles.cardIcon}>
@@ -87,56 +121,73 @@ export default function HomeScreen({ navigation }) {
             ›
           </Text>
         </TouchableOpacity>
-
       </View>
 
       <Text style={styles.sectionTitle}>
-        Outras opções
+        Atenção
       </Text>
 
-      <View style={styles.secondaryContainer}>
+      {isLoading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator
+            size="large"
+            color="#6C63FF"
+          />
 
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => navigation.navigate('Vacinas')}
-        >
-          <Text style={styles.secondaryEmoji}>
-            💉
+          <Text style={styles.loadingText}>
+            Carregando informações...
+          </Text>
+        </View>
+      ) : isError ? (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorIcon}>
+            ⚠️
           </Text>
 
-          <Text style={styles.secondaryText}>
-            Vacinas
+          <Text style={styles.errorText}>
+            Não foi possível carregar os pets críticos.
           </Text>
-        </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.criticosCard}>
+          <View style={styles.criticosTopo}>
+            <View>
+              <Text style={styles.criticosTitulo}>
+                Pets em situação crítica
+              </Text>
 
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => navigation.navigate('Medicamentos')}
-        >
-          <Text style={styles.secondaryEmoji}>
-            💊
-          </Text>
+              <Text style={styles.criticosSubtitulo}>
+                Acompanhe os animais que precisam de atenção
+              </Text>
+            </View>
 
-          <Text style={styles.secondaryText}>
-            Medicamentos
-          </Text>
-        </TouchableOpacity>
+            <View style={styles.criticosBadge}>
+              <Text style={styles.criticosBadgeTexto}>
+                {petsCriticos.length}
+              </Text>
+            </View>
+          </View>
 
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => navigation.navigate('Cadastro')}
-        >
-          <Text style={styles.secondaryEmoji}>
-            📋
-          </Text>
+          {petsCriticos.length > 0 ? (
+            <TouchableOpacity
+              style={styles.criticosBotao}
+              onPress={() => navigation.navigate('Pets')}
+            >
+              <Text style={styles.criticosBotaoTexto}>
+                Ver pets críticos
+              </Text>
 
-          <Text style={styles.secondaryText}>
-            Cadastro
-          </Text>
-        </TouchableOpacity>
-
-      </View>
-
+              <Text style={styles.criticosSeta}>
+                →
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.semCriticos}>
+              Nenhum pet crítico no momento.
+            </Text>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -156,8 +207,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
+  headerTexto: {
+    flex: 1,
+  },
+
   welcome: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#77738F',
     marginBottom: 3,
   },
@@ -175,6 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6C63FF',
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 15,
   },
 
   logo: {
@@ -197,7 +253,7 @@ const styles = StyleSheet.create({
   },
 
   principalContainer: {
-    marginBottom: 26,
+    marginBottom: 24,
   },
 
   principalCard: {
@@ -246,6 +302,7 @@ const styles = StyleSheet.create({
   cardDescription: {
     fontSize: 12,
     color: '#858195',
+    lineHeight: 17,
   },
 
   arrow: {
@@ -254,38 +311,115 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
-  secondaryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  loading: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 25,
+    alignItems: 'center',
+    marginBottom: 20,
   },
 
-  secondaryButton: {
+  loadingText: {
+    marginTop: 10,
+    fontSize: 13,
+    color: '#77738F',
+  },
+
+  errorCard: {
     backgroundColor: '#FFFFFF',
-    width: '31%',
-    minHeight: 92,
     borderRadius: 16,
-    justifyContent: 'center',
+    padding: 20,
     alignItems: 'center',
-    padding: 10,
+    marginBottom: 20,
+  },
+
+  errorIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+
+  errorText: {
+    color: '#D32F2F',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+
+  criticosCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 18,
 
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
 
-  secondaryEmoji: {
-    fontSize: 25,
-    marginBottom: 8,
+  criticosTopo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
-  secondaryText: {
+  criticosTitulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#29254A',
+    marginBottom: 3,
+  },
+
+  criticosSubtitulo: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#403B5C',
+    color: '#858195',
+    maxWidth: 260,
+  },
+
+  criticosBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#FFF0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  criticosBadgeTexto: {
+    color: '#D32F2F',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  criticosBotao: {
+    marginTop: 15,
+    paddingTop: 13,
+    borderTopWidth: 1,
+    borderTopColor: '#F0EFF5',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  criticosBotaoTexto: {
+    color: '#6C63FF',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+
+  criticosSeta: {
+    color: '#6C63FF',
+    fontSize: 20,
+  },
+
+  semCriticos: {
+    marginTop: 15,
+    paddingTop: 13,
+    borderTopWidth: 1,
+    borderTopColor: '#F0EFF5',
+    color: '#77738F',
+    fontSize: 12,
   },
 });

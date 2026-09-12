@@ -21,19 +21,33 @@ export default function PetDetailsScreen({ route, navigation }) {
   const mutation = useMutation({
     mutationFn: () => excluirPet(pet.id),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['pets'],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['pets'],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ['resumo-risco'],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ['pets-criticos'],
+        }),
+      ]);
 
       navigation.goBack();
     },
 
     onError: (error) => {
       if (error.response?.status === 403) {
-        setErro('Você não tem permissão para excluir este pet.');
+        setErro(
+          'Você não tem permissão para excluir este pet.'
+        );
       } else {
-        setErro('Não foi possível excluir o pet.');
+        setErro(
+          'Não foi possível excluir o pet.'
+        );
       }
     },
   });

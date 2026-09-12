@@ -1,5 +1,10 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+
+import { useState } from 'react';
 
 import {
   ActivityIndicator,
@@ -25,25 +30,34 @@ export default function PetFormScreen({ route, navigation }) {
   const queryClient = useQueryClient();
 
   const [nome, setNome] = useState(pet?.nome || '');
+
   const [idade, setIdade] = useState(
     pet?.idade ? String(pet.idade) : ''
   );
+
   const [especie, setEspecie] = useState(
     pet?.especie || ''
   );
+
   const [nivelRisco, setNivelRisco] = useState(
     pet?.nivelRisco || 'BAIXO'
   );
 
-  const [tutores, setTutores] = useState([]);
   const [tutorSelecionado, setTutorSelecionado] = useState(
     pet?.tutor || null
   );
 
-  const [carregandoTutores, setCarregandoTutores] =
-    useState(true);
-
   const [erro, setErro] = useState('');
+
+  const {
+    data: tutores = [],
+    isLoading: carregandoTutores,
+    isError: erroTutores,
+  } = useQuery({
+    queryKey: ['tutores'],
+    queryFn: listarTutores,
+    refetchOnMount: true,
+  });
 
   const mutation = useMutation({
     mutationFn: async (dadosPet) => {
@@ -70,28 +84,6 @@ export default function PetFormScreen({ route, navigation }) {
       );
     },
   });
-
-  async function carregarTutores() {
-    try {
-      setCarregandoTutores(true);
-      setErro('');
-
-      const dados = await listarTutores();
-      setTutores(dados);
-
-      if (!tutorSelecionado && dados.length > 0) {
-        setTutorSelecionado(dados[0]);
-      }
-    } catch (error) {
-      setErro('Não foi possível carregar os tutores.');
-    } finally {
-      setCarregandoTutores(false);
-    }
-  }
-
-  useEffect(() => {
-    carregarTutores();
-  }, []);
 
   function salvarPet() {
     if (!nome || !idade || !especie) {
@@ -212,6 +204,10 @@ export default function PetFormScreen({ route, navigation }) {
             Carregando tutores...
           </Text>
         </View>
+      ) : erroTutores ? (
+        <Text style={styles.erro}>
+          Não foi possível carregar os tutores.
+        </Text>
       ) : (
         <View style={styles.tutores}>
           {tutores.map((tutor) => (
@@ -259,7 +255,11 @@ export default function PetFormScreen({ route, navigation }) {
       <TouchableOpacity
         style={styles.botao}
         onPress={salvarPet}
-        disabled={mutation.isPending || carregandoTutores}
+        disabled={
+          mutation.isPending ||
+          carregandoTutores ||
+          erroTutores
+        }
       >
         {mutation.isPending ? (
           <ActivityIndicator color="#fff" />

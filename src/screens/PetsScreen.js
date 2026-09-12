@@ -1,4 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,16 +17,26 @@ export default function PetsScreen({ navigation }) {
     data: pets = [],
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ['pets'],
     queryFn: listarPets,
     refetchOnMount: true,
   });
 
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   if (isLoading) {
     return (
       <View style={styles.centralizado}>
-        <ActivityIndicator size="large" color="#6C63FF" />
+        <ActivityIndicator
+          size="large"
+          color="#6C63FF"
+        />
 
         <Text style={styles.carregando}>
           Carregando pets...
@@ -42,10 +54,10 @@ export default function PetsScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.botaoTentar}
-          onPress={() => navigation.goBack()}
+          onPress={() => refetch()}
         >
           <Text style={styles.textoBotaoTentar}>
-            Voltar
+            Tentar novamente
           </Text>
         </TouchableOpacity>
       </View>
@@ -67,7 +79,9 @@ export default function PetsScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.botaoAdicionar}
-          onPress={() => navigation.navigate('PetForm')}
+          onPress={() =>
+            navigation.navigate('PetForm')
+          }
         >
           <Text style={styles.textoAdicionar}>
             + Adicionar
@@ -77,21 +91,28 @@ export default function PetsScreen({ navigation }) {
 
       <FlatList
         data={pets}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) =>
+          item.id.toString()
+        }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.lista}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
             onPress={() =>
-              navigation.navigate('PetDetails', {
-                pet: item,
-              })
+              navigation.navigate(
+                'PetDetails',
+                {
+                  pet: item,
+                }
+              )
             }
           >
             <View style={styles.icone}>
               <Text style={styles.emoji}>
-                {item.especie?.toLowerCase() === 'gato'
+                {item.especie
+                  ?.toLowerCase()
+                  .trim() === 'gato'
                   ? '🐱'
                   : '🐶'}
               </Text>
@@ -107,7 +128,9 @@ export default function PetsScreen({ navigation }) {
               </Text>
 
               <Text style={styles.tutor}>
-                Tutor: {item.tutor?.nome || 'Não informado'}
+                Tutor:{' '}
+                {item.tutor?.nome ||
+                  'Não informado'}
               </Text>
             </View>
           </TouchableOpacity>
