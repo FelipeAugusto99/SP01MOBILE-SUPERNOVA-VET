@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,44 +18,56 @@ export default function TutorFormScreen({ route, navigation }) {
   const tutor = route.params?.tutor;
   const editando = !!tutor;
 
+  const queryClient = useQueryClient();
+
   const [nome, setNome] = useState(tutor?.nome || '');
   const [email, setEmail] = useState(tutor?.email || '');
-  const [telefone, setTelefone] = useState(tutor?.telefone || '');
-  const [carregando, setCarregando] = useState(false);
+  const [telefone, setTelefone] = useState(
+    tutor?.telefone || ''
+  );
   const [erro, setErro] = useState('');
 
-  async function salvarTutor() {
-    if (!nome || !email || !telefone) {
-      setErro('Preencha todos os campos.');
-      return;
-    }
-
-    try {
-      setCarregando(true);
-      setErro('');
-
-      const dadosTutor = {
-        nome,
-        email,
-        telefone,
-      };
-
+  const mutation = useMutation({
+    mutationFn: async (dadosTutor) => {
       if (editando) {
-        await atualizarTutor(tutor.id, dadosTutor);
-      } else {
-        await criarTutor(dadosTutor);
+        return atualizarTutor(tutor.id, dadosTutor);
       }
 
+      return criarTutor(dadosTutor);
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tutores'],
+      });
+
       navigation.goBack();
-    } catch (error) {
+    },
+
+    onError: () => {
       setErro(
         editando
           ? 'Não foi possível atualizar o tutor.'
           : 'Não foi possível cadastrar o tutor.'
       );
-    } finally {
-      setCarregando(false);
+    },
+  });
+
+  function salvarTutor() {
+    if (!nome || !email || !telefone) {
+      setErro('Preencha todos os campos.');
+      return;
     }
+
+    setErro('');
+
+    const dadosTutor = {
+      nome,
+      email,
+      telefone,
+    };
+
+    mutation.mutate(dadosTutor);
   }
 
   return (
@@ -118,13 +131,15 @@ export default function TutorFormScreen({ route, navigation }) {
       <TouchableOpacity
         style={styles.botao}
         onPress={salvarTutor}
-        disabled={carregando}
+        disabled={mutation.isPending}
       >
-        {carregando ? (
+        {mutation.isPending ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.textoBotao}>
-            {editando ? 'Salvar Alterações' : 'Cadastrar Tutor'}
+            {editando
+              ? 'Salvar Alterações'
+              : 'Cadastrar Tutor'}
           </Text>
         )}
       </TouchableOpacity>

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +16,38 @@ export default function TutorDetailsScreen({
 }) {
   const { tutor } = route.params;
 
-  const [excluindo, setExcluindo] = useState(false);
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: () => excluirTutor(tutor.id),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tutores'],
+      });
+
+      navigation.goBack();
+    },
+
+    onError: (error) => {
+      if (error.response?.status === 409) {
+        Alert.alert(
+          'Não é possível excluir',
+          'Este tutor possui pets vinculados. Remova ou altere os pets antes de excluir o tutor.'
+        );
+      } else if (error.response?.status === 403) {
+        Alert.alert(
+          'Sem permissão',
+          'Apenas usuários administradores podem excluir tutores.'
+        );
+      } else {
+        Alert.alert(
+          'Erro',
+          'Não foi possível excluir o tutor.'
+        );
+      }
+    },
+  });
 
   function deletarTutor() {
     Alert.alert(
@@ -31,33 +61,8 @@ export default function TutorDetailsScreen({
         {
           text: 'Excluir',
           style: 'destructive',
-          async onPress() {
-            try {
-              setExcluindo(true);
-
-              await excluirTutor(tutor.id);
-
-              navigation.goBack();
-            } catch (error) {
-              if (error.response?.status === 409) {
-                Alert.alert(
-                  'Não é possível excluir',
-                  'Este tutor possui pets vinculados. Remova ou altere os pets antes de excluir o tutor.'
-                );
-              } else if (error.response?.status === 403) {
-                Alert.alert(
-                  'Sem permissão',
-                  'Apenas usuários administradores podem excluir tutores.'
-                );
-              } else {
-                Alert.alert(
-                  'Erro',
-                  'Não foi possível excluir o tutor.'
-                );
-              }
-            } finally {
-              setExcluindo(false);
-            }
+          onPress: () => {
+            mutation.mutate();
           },
         },
       ]
@@ -105,6 +110,7 @@ export default function TutorDetailsScreen({
             tutor,
           })
         }
+        disabled={mutation.isPending}
       >
         <Text style={styles.textoBotaoEditar}>
           Editar Tutor
@@ -114,9 +120,9 @@ export default function TutorDetailsScreen({
       <TouchableOpacity
         style={styles.botaoExcluir}
         onPress={deletarTutor}
-        disabled={excluindo}
+        disabled={mutation.isPending}
       >
-        {excluindo ? (
+        {mutation.isPending ? (
           <ActivityIndicator color="#D32F2F" />
         ) : (
           <Text style={styles.textoBotaoExcluir}>
@@ -128,6 +134,7 @@ export default function TutorDetailsScreen({
       <TouchableOpacity
         style={styles.botaoVoltar}
         onPress={() => navigation.goBack()}
+        disabled={mutation.isPending}
       >
         <Text style={styles.textoBotaoVoltar}>
           Voltar

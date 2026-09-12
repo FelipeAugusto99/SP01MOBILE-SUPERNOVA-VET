@@ -1,40 +1,25 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import { listarTutores } from '../services/tutoresService';
 
 export default function TutoresScreen({ navigation }) {
-  const [tutores, setTutores] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
-
-  async function carregarTutores() {
-    try {
-      setCarregando(true);
-      setErro('');
-
-      const dados = await listarTutores();
-      setTutores(dados);
-    } catch (error) {
-      setErro('Não foi possível carregar os tutores.');
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      carregarTutores();
-    }, [])
-  );
+  const {
+    data: tutores = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['tutores'],
+    queryFn: listarTutores,
+    refetchOnMount: true,
+  });
 
   function renderTutor({ item }) {
     return (
@@ -82,7 +67,7 @@ export default function TutoresScreen({ navigation }) {
     );
   }
 
-  if (carregando) {
+  if (isLoading) {
     return (
       <View style={styles.centralizado}>
         <ActivityIndicator
@@ -97,11 +82,11 @@ export default function TutoresScreen({ navigation }) {
     );
   }
 
-  if (erro) {
+  if (isError) {
     return (
       <View style={styles.centralizado}>
         <Text style={styles.erro}>
-          {erro}
+          Não foi possível carregar os tutores.
         </Text>
       </View>
     );
@@ -148,6 +133,11 @@ export default function TutoresScreen({ navigation }) {
         renderItem={renderTutor}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.lista}
+        ListEmptyComponent={
+          <Text style={styles.vazio}>
+            Nenhum tutor cadastrado.
+          </Text>
+        }
       />
     </View>
   );
@@ -226,7 +216,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
-
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -313,5 +302,12 @@ const styles = StyleSheet.create({
     color: '#D32F2F',
     fontSize: 16,
     textAlign: 'center',
+  },
+
+  vazio: {
+    textAlign: 'center',
+    color: '#88849B',
+    marginTop: 40,
+    fontSize: 14,
   },
 });
