@@ -9,30 +9,48 @@ import {
     View,
 } from 'react-native';
 
-import { criarPet } from '../services/petsService';
+import {
+    atualizarPet,
+    criarPet,
+} from '../services/petsService';
+
 import { listarTutores } from '../services/tutoresService';
 
-export default function PetFormScreen({ navigation }) {
-  const [nome, setNome] = useState('');
-  const [idade, setIdade] = useState('');
-  const [especie, setEspecie] = useState('');
-  const [nivelRisco, setNivelRisco] = useState('BAIXO');
+export default function PetFormScreen({ route, navigation }) {
+  const pet = route.params?.pet;
+  const editando = !!pet;
+
+  const [nome, setNome] = useState(pet?.nome || '');
+  const [idade, setIdade] = useState(
+    pet?.idade ? String(pet.idade) : ''
+  );
+  const [especie, setEspecie] = useState(
+    pet?.especie || ''
+  );
+  const [nivelRisco, setNivelRisco] = useState(
+    pet?.nivelRisco || 'BAIXO'
+  );
 
   const [tutores, setTutores] = useState([]);
-  const [tutorSelecionado, setTutorSelecionado] = useState(null);
+  const [tutorSelecionado, setTutorSelecionado] = useState(
+    pet?.tutor || null
+  );
 
-  const [carregandoTutores, setCarregandoTutores] = useState(true);
+  const [carregandoTutores, setCarregandoTutores] =
+    useState(true);
+
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
 
   async function carregarTutores() {
     try {
       setCarregandoTutores(true);
+      setErro('');
 
       const dados = await listarTutores();
       setTutores(dados);
 
-      if (dados.length > 0) {
+      if (!tutorSelecionado && dados.length > 0) {
         setTutorSelecionado(dados[0]);
       }
     } catch (error) {
@@ -46,7 +64,7 @@ export default function PetFormScreen({ navigation }) {
     carregarTutores();
   }, []);
 
-  async function cadastrarPet() {
+  async function salvarPet() {
     if (!nome || !idade || !especie) {
       setErro('Preencha todos os campos.');
       return;
@@ -61,7 +79,7 @@ export default function PetFormScreen({ navigation }) {
       setCarregando(true);
       setErro('');
 
-      await criarPet({
+      const dadosPet = {
         nome,
         idade: Number(idade),
         especie,
@@ -72,11 +90,21 @@ export default function PetFormScreen({ navigation }) {
           email: tutorSelecionado.email,
           telefone: tutorSelecionado.telefone,
         },
-      });
+      };
+
+      if (editando) {
+        await atualizarPet(pet.id, dadosPet);
+      } else {
+        await criarPet(dadosPet);
+      }
 
       navigation.goBack();
     } catch (error) {
-      setErro('Não foi possível cadastrar o pet.');
+      setErro(
+        editando
+          ? 'Não foi possível atualizar o pet.'
+          : 'Não foi possível cadastrar o pet.'
+      );
     } finally {
       setCarregando(false);
     }
@@ -88,13 +116,19 @@ export default function PetFormScreen({ navigation }) {
       contentContainerStyle={styles.conteudo}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.titulo}>Cadastrar Pet</Text>
-
-      <Text style={styles.subtitulo}>
-        Adicione um novo animal ao sistema
+      <Text style={styles.titulo}>
+        {editando ? 'Editar Pet' : 'Cadastrar Pet'}
       </Text>
 
-      <Text style={styles.label}>Nome do pet</Text>
+      <Text style={styles.subtitulo}>
+        {editando
+          ? 'Atualize os dados do animal'
+          : 'Adicione um novo animal ao sistema'}
+      </Text>
+
+      <Text style={styles.label}>
+        Nome do pet
+      </Text>
 
       <TextInput
         style={styles.input}
@@ -103,7 +137,9 @@ export default function PetFormScreen({ navigation }) {
         onChangeText={setNome}
       />
 
-      <Text style={styles.label}>Idade</Text>
+      <Text style={styles.label}>
+        Idade
+      </Text>
 
       <TextInput
         style={styles.input}
@@ -113,7 +149,9 @@ export default function PetFormScreen({ navigation }) {
         keyboardType="numeric"
       />
 
-      <Text style={styles.label}>Espécie</Text>
+      <Text style={styles.label}>
+        Espécie
+      </Text>
 
       <TextInput
         style={styles.input}
@@ -122,7 +160,9 @@ export default function PetFormScreen({ navigation }) {
         onChangeText={setEspecie}
       />
 
-      <Text style={styles.label}>Nível de risco</Text>
+      <Text style={styles.label}>
+        Nível de risco
+      </Text>
 
       <View style={styles.riscos}>
         {['BAIXO', 'MEDIO', 'ALTO'].map((risco) => (
@@ -130,14 +170,16 @@ export default function PetFormScreen({ navigation }) {
             key={risco}
             style={[
               styles.botaoRisco,
-              nivelRisco === risco && styles.botaoRiscoSelecionado,
+              nivelRisco === risco &&
+                styles.botaoRiscoSelecionado,
             ]}
             onPress={() => setNivelRisco(risco)}
           >
             <Text
               style={[
                 styles.textoRisco,
-                nivelRisco === risco && styles.textoRiscoSelecionado,
+                nivelRisco === risco &&
+                  styles.textoRiscoSelecionado,
               ]}
             >
               {risco}
@@ -146,11 +188,14 @@ export default function PetFormScreen({ navigation }) {
         ))}
       </View>
 
-      <Text style={styles.label}>Tutor</Text>
+      <Text style={styles.label}>
+        Tutor
+      </Text>
 
       {carregandoTutores ? (
         <View style={styles.carregandoTutores}>
           <ActivityIndicator color="#6C63FF" />
+
           <Text style={styles.textoCarregando}>
             Carregando tutores...
           </Text>
@@ -165,7 +210,9 @@ export default function PetFormScreen({ navigation }) {
                 tutorSelecionado?.id === tutor.id &&
                   styles.botaoTutorSelecionado,
               ]}
-              onPress={() => setTutorSelecionado(tutor)}
+              onPress={() =>
+                setTutorSelecionado(tutor)
+              }
             >
               <Text
                 style={[
@@ -191,17 +238,25 @@ export default function PetFormScreen({ navigation }) {
         </View>
       )}
 
-      {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+      {erro ? (
+        <Text style={styles.erro}>
+          {erro}
+        </Text>
+      ) : null}
 
       <TouchableOpacity
         style={styles.botao}
-        onPress={cadastrarPet}
+        onPress={salvarPet}
         disabled={carregando || carregandoTutores}
       >
         {carregando ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.textoBotao}>Cadastrar Pet</Text>
+          <Text style={styles.textoBotao}>
+            {editando
+              ? 'Salvar Alterações'
+              : 'Cadastrar Pet'}
+          </Text>
         )}
       </TouchableOpacity>
     </ScrollView>
