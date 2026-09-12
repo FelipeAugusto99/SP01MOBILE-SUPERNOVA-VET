@@ -1,15 +1,68 @@
+import { useState } from 'react';
+
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
+import { excluirTutor } from '../services/tutoresService';
 
 export default function TutorDetailsScreen({
   route,
   navigation,
 }) {
   const { tutor } = route.params;
+
+  const [excluindo, setExcluindo] = useState(false);
+
+  function deletarTutor() {
+    Alert.alert(
+      'Excluir Tutor',
+      `Tem certeza que deseja excluir ${tutor.nome}?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          async onPress() {
+            try {
+              setExcluindo(true);
+
+              await excluirTutor(tutor.id);
+
+              navigation.goBack();
+            } catch (error) {
+              if (error.response?.status === 409) {
+                Alert.alert(
+                  'Não é possível excluir',
+                  'Este tutor possui pets vinculados. Remova ou altere os pets antes de excluir o tutor.'
+                );
+              } else if (error.response?.status === 403) {
+                Alert.alert(
+                  'Sem permissão',
+                  'Apenas usuários administradores podem excluir tutores.'
+                );
+              } else {
+                Alert.alert(
+                  'Erro',
+                  'Não foi possível excluir o tutor.'
+                );
+              }
+            } finally {
+              setExcluindo(false);
+            }
+          },
+        },
+      ]
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -56,6 +109,20 @@ export default function TutorDetailsScreen({
         <Text style={styles.textoBotaoEditar}>
           Editar Tutor
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.botaoExcluir}
+        onPress={deletarTutor}
+        disabled={excluindo}
+      >
+        {excluindo ? (
+          <ActivityIndicator color="#D32F2F" />
+        ) : (
+          <Text style={styles.textoBotaoExcluir}>
+            Excluir Tutor
+          </Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -152,6 +219,22 @@ const styles = StyleSheet.create({
 
   textoBotaoEditar: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  botaoExcluir: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#D32F2F',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+
+  textoBotaoExcluir: {
+    color: '#D32F2F',
     fontSize: 16,
     fontWeight: 'bold',
   },
