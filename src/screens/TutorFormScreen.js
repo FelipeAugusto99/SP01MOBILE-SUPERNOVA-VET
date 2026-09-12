@@ -1,23 +1,29 @@
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
 
-import { criarTutor } from '../services/tutoresService';
+import {
+  atualizarTutor,
+  criarTutor,
+} from '../services/tutoresService';
 
-export default function TutorFormScreen({ navigation }) {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
+export default function TutorFormScreen({ route, navigation }) {
+  const tutor = route.params?.tutor;
+  const editando = !!tutor;
+
+  const [nome, setNome] = useState(tutor?.nome || '');
+  const [email, setEmail] = useState(tutor?.email || '');
+  const [telefone, setTelefone] = useState(tutor?.telefone || '');
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
 
-  async function cadastrarTutor() {
+  async function salvarTutor() {
     if (!nome || !email || !telefone) {
       setErro('Preencha todos os campos.');
       return;
@@ -27,15 +33,25 @@ export default function TutorFormScreen({ navigation }) {
       setCarregando(true);
       setErro('');
 
-      await criarTutor({
+      const dadosTutor = {
         nome,
         email,
         telefone,
-      });
+      };
+
+      if (editando) {
+        await atualizarTutor(tutor.id, dadosTutor);
+      } else {
+        await criarTutor(dadosTutor);
+      }
 
       navigation.goBack();
     } catch (error) {
-      setErro('Não foi possível cadastrar o tutor.');
+      setErro(
+        editando
+          ? 'Não foi possível atualizar o tutor.'
+          : 'Não foi possível cadastrar o tutor.'
+      );
     } finally {
       setCarregando(false);
     }
@@ -48,11 +64,13 @@ export default function TutorFormScreen({ navigation }) {
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.titulo}>
-        Cadastrar Tutor
+        {editando ? 'Editar Tutor' : 'Cadastrar Tutor'}
       </Text>
 
       <Text style={styles.subtitulo}>
-        Adicione um novo responsável ao sistema
+        {editando
+          ? 'Atualize os dados do responsável'
+          : 'Adicione um novo responsável ao sistema'}
       </Text>
 
       <Text style={styles.label}>
@@ -99,14 +117,14 @@ export default function TutorFormScreen({ navigation }) {
 
       <TouchableOpacity
         style={styles.botao}
-        onPress={cadastrarTutor}
+        onPress={salvarTutor}
         disabled={carregando}
       >
         {carregando ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.textoBotao}>
-            Cadastrar Tutor
+            {editando ? 'Salvar Alterações' : 'Cadastrar Tutor'}
           </Text>
         )}
       </TouchableOpacity>
