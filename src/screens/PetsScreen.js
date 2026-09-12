@@ -1,5 +1,4 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,125 +11,19 @@ import {
 import { listarPets } from '../services/petsService';
 
 export default function PetsScreen({ navigation }) {
-  const [pets, setPets] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState('');
+  const {
+    data: pets = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['pets'],
+    queryFn: listarPets,
+  });
 
-  async function carregarPets() {
-    try {
-      setCarregando(true);
-      setErro('');
-
-      const dados = await listarPets();
-      setPets(dados);
-    } catch (error) {
-      setErro('Não foi possível carregar os pets.');
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      carregarPets();
-    }, [])
-  );
-
-  function getEmoji(especie) {
-    if (especie?.toLowerCase() === 'gato') {
-      return '🐱';
-    }
-
-    return '🐶';
-  }
-
-  function getCorRisco(nivelRisco) {
-    if (nivelRisco === 'ALTO') {
-      return '#E53935';
-    }
-
-    if (nivelRisco === 'MEDIO') {
-      return '#F9A825';
-    }
-
-    return '#43A047';
-  }
-
-  function renderPet({ item }) {
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.8}
-        onPress={() =>
-          navigation.navigate('PetDetails', {
-            pet: item,
-          })
-        }
-      >
-        <View style={styles.cardTopo}>
-          <View style={styles.petInfo}>
-            <View style={styles.icone}>
-              <Text style={styles.emoji}>
-                {getEmoji(item.especie)}
-              </Text>
-            </View>
-
-            <View>
-              <Text style={styles.nome}>
-                {item.nome}
-              </Text>
-
-              <Text style={styles.especie}>
-                {item.especie} • {item.idade} anos
-              </Text>
-            </View>
-          </View>
-
-          <View
-            style={[
-              styles.risco,
-              {
-                backgroundColor: getCorRisco(
-                  item.nivelRisco
-                ),
-              },
-            ]}
-          >
-            <Text style={styles.riscoTexto}>
-              {item.nivelRisco}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.linha} />
-
-        <Text style={styles.tutorTitulo}>
-          Tutor
-        </Text>
-
-        <Text style={styles.tutorNome}>
-          {item.tutor?.nome || 'Não informado'}
-        </Text>
-
-        <Text style={styles.tutorEmail}>
-          {item.tutor?.email || 'E-mail não informado'}
-        </Text>
-
-        <Text style={styles.verDetalhes}>
-          Toque para ver detalhes →
-        </Text>
-      </TouchableOpacity>
-    );
-  }
-
-  if (carregando) {
+  if (isLoading) {
     return (
       <View style={styles.centralizado}>
-        <ActivityIndicator
-          size="large"
-          color="#6C63FF"
-        />
-
+        <ActivityIndicator size="large" color="#6C63FF" />
         <Text style={styles.carregando}>
           Carregando pets...
         </Text>
@@ -138,57 +31,90 @@ export default function PetsScreen({ navigation }) {
     );
   }
 
-  if (erro) {
+  if (isError) {
     return (
       <View style={styles.centralizado}>
         <Text style={styles.erro}>
-          {erro}
+          Não foi possível carregar os pets.
         </Text>
+
+        <TouchableOpacity
+          style={styles.botaoTentar}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.textoBotaoTentar}>
+            Voltar
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.cabecalho}>
+      <View style={styles.topo}>
         <View>
           <Text style={styles.titulo}>
-            Meus Pets
+            Pets
           </Text>
 
           <Text style={styles.subtitulo}>
-            Animais cadastrados no sistema
+            Gerencie os animais cadastrados
           </Text>
         </View>
 
         <TouchableOpacity
           style={styles.botaoAdicionar}
-          onPress={() =>
-            navigation.navigate('PetForm')
-          }
+          onPress={() => navigation.navigate('PetForm')}
         >
-          <Text style={styles.textoBotaoAdicionar}>
+          <Text style={styles.textoAdicionar}>
             + Adicionar
           </Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.contador}>
-        <Text style={styles.numero}>
-          {pets.length}
-        </Text>
-
-        <Text style={styles.contadorTexto}>
-          pets
-        </Text>
-      </View>
-
       <FlatList
         data={pets}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderPet}
+        keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.lista}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('PetDetails', {
+                pet: item,
+              })
+            }
+          >
+            <View style={styles.icone}>
+              <Text style={styles.emoji}>
+                {item.especie?.toLowerCase() === 'gato'
+                  ? '🐱'
+                  : '🐶'}
+              </Text>
+            </View>
+
+            <View style={styles.informacoes}>
+              <Text style={styles.nome}>
+                {item.nome}
+              </Text>
+
+              <Text style={styles.detalhes}>
+                {item.especie} • {item.idade} anos
+              </Text>
+
+              <Text style={styles.tutor}>
+                Tutor: {item.tutor?.nome || 'Não informado'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={
+          <Text style={styles.vazio}>
+            Nenhum pet cadastrado.
+          </Text>
+        }
       />
     </View>
   );
@@ -198,26 +124,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F6F5FF',
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 20,
   },
 
-  cabecalho: {
+  topo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 20,
   },
 
   titulo: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#29254A',
   },
 
   subtitulo: {
-    fontSize: 14,
-    color: '#77738F',
+    fontSize: 13,
+    color: '#88849B',
     marginTop: 4,
   },
 
@@ -228,32 +153,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 
-  textoBotaoAdicionar: {
+  textoAdicionar: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 13,
-  },
-
-  contador: {
-    backgroundColor: '#6C63FF',
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    marginBottom: 14,
-  },
-
-  numero: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-
-  contadorTexto: {
-    color: '#fff',
-    fontSize: 11,
   },
 
   lista: {
@@ -262,121 +165,95 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 14,
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
 
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-
-  cardTopo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  petInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
 
   icone: {
-    width: 52,
-    height: 52,
+    width: 55,
+    height: 55,
     borderRadius: 16,
     backgroundColor: '#EEECFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
 
   emoji: {
-    fontSize: 27,
+    fontSize: 28,
+  },
+
+  informacoes: {
+    flex: 1,
   },
 
   nome: {
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#29254A',
-  },
-
-  especie: {
-    fontSize: 13,
-    color: '#77738F',
-    marginTop: 4,
-  },
-
-  risco: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-
-  riscoTexto: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-
-  linha: {
-    height: 1,
-    backgroundColor: '#EEEEF4',
-    marginVertical: 15,
-  },
-
-  tutorTitulo: {
-    fontSize: 11,
-    color: '#9995AA',
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
     marginBottom: 4,
   },
 
-  tutorNome: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#403B5C',
-  },
-
-  tutorEmail: {
-    fontSize: 12,
-    color: '#858195',
-    marginTop: 3,
-  },
-
-  verDetalhes: {
+  detalhes: {
+    fontSize: 13,
     color: '#6C63FF',
+    marginBottom: 4,
+  },
+
+  tutor: {
     fontSize: 12,
-    fontWeight: '600',
-    marginTop: 12,
-    textAlign: 'right',
+    color: '#88849B',
+  },
+
+  vazio: {
+    textAlign: 'center',
+    color: '#88849B',
+    marginTop: 40,
+    fontSize: 14,
   },
 
   centralizado: {
     flex: 1,
+    backgroundColor: '#F6F5FF',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#F6F5FF',
   },
 
   carregando: {
-    marginTop: 12,
-    color: '#77738F',
+    marginTop: 10,
+    color: '#6C63FF',
     fontSize: 14,
   },
 
   erro: {
     color: '#D32F2F',
-    fontSize: 16,
+    fontSize: 15,
     textAlign: 'center',
+    marginBottom: 15,
+  },
+
+  botaoTentar: {
+    backgroundColor: '#6C63FF',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+  },
+
+  textoBotaoTentar: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

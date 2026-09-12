@@ -1,5 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import CadastroScreen from './src/screens/CadastroScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -16,6 +17,8 @@ import VacinasScreen from './src/screens/VacinasScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 const Stack = createNativeStackNavigator();
+
+const queryClient = new QueryClient();
 
 function AppNavigation() {
   const { usuario } = useAuth();
@@ -35,16 +38,11 @@ function AppNavigation() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#6C63FF',
-        },
+        headerStyle: { backgroundColor: '#6C63FF' },
         headerTintColor: '#fff',
       }}
     >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-      />
+      <Stack.Screen name="Home" component={HomeScreen} />
 
       <Stack.Screen
         name="Pets"
@@ -100,10 +98,12 @@ function AppNavigation() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <NavigationContainer>
-        <AppNavigation />
-      </NavigationContainer>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <NavigationContainer>
+          <AppNavigation />
+        </NavigationContainer>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
