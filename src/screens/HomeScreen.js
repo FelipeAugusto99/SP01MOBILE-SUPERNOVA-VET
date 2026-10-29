@@ -8,19 +8,54 @@ import {
 
 import {
   useCallback,
+  useLayoutEffect,
 } from 'react';
 
 import {
   ActivityIndicator,
+  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export default function HomeScreen({ navigation }) {
+  const { logout } = useAuth();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={confirmarLogout}>
+          <Text style={styles.sair}>
+            Sair
+          </Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
+  function confirmarLogout() {
+    Alert.alert(
+      'Sair',
+      'Deseja encerrar a sessão?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: logout,
+        },
+      ]
+    );
+  }
+
   const {
     data: petsCriticos = [],
     isLoading,
@@ -193,6 +228,12 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  sair: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+
   container: {
     flex: 1,
     backgroundColor: '#F6F5FF',
