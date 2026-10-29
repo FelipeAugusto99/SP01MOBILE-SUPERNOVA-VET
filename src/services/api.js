@@ -13,4 +13,19 @@ export function limparAutenticacao() {
   delete api.defaults.auth;
 }
 
+export function registrarInterceptadorNaoAutorizado(aoNaoAutorizar) {
+  const id = api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401 && api.defaults.auth) {
+        aoNaoAutorizar();
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
+  return () => api.interceptors.response.eject(id);
+}
+
 export default api;

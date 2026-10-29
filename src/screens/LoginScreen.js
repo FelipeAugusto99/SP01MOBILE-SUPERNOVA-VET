@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
 
 export default function LoginScreen() {
     const { login } = useAuth();
@@ -29,16 +28,13 @@ export default function LoginScreen() {
             setCarregando(true);
             setErro('');
 
-            await api.get('/pets', {
-                auth: {
-                    username,
-                    password,
-                },
-            });
-
-            login(username, password);
+            await login(username, password);
         } catch (error) {
-            setErro('Usuário ou senha inválidos.');
+            setErro(
+                error.response?.status === 401
+                    ? 'Usuário ou senha inválidos.'
+                    : 'Não foi possível conectar ao servidor.'
+            );
         } finally {
             setCarregando(false);
         }

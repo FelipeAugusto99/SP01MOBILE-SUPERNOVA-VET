@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ActivityIndicator, View } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -18,7 +19,15 @@ const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 function AppNavigation() {
-  const { usuario } = useAuth();
+  const { usuario, carregandoSessao } = useAuth();
+
+  if (carregandoSessao) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#6C63FF" />
+      </View>
+    );
+  }
 
   if (!usuario) {
     return (
