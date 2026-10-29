@@ -1,9 +1,3 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-
 import { useState } from 'react';
 
 import {
@@ -16,18 +10,18 @@ import {
   View,
 } from 'react-native';
 
+import { useSalvarPet } from '../hooks/usePets';
+import { useTutores } from '../hooks/useTutores';
+import { obterMensagemErro } from '../utils/erros';
 import {
-  atualizarPet,
-  criarPet,
-} from '../services/petsService';
-
-import { listarTutores } from '../services/tutoresService';
+  montarDadosPet,
+  NIVEIS_RISCO,
+  validarPet,
+} from '../utils/pets';
 
 export default function PetFormScreen({ route, navigation }) {
   const pet = route.params?.pet;
   const editando = !!pet;
-
-  const queryClient = useQueryClient();
 
   const [nome, setNome] = useState(pet?.nome || '');
 
@@ -53,65 +47,39 @@ export default function PetFormScreen({ route, navigation }) {
     data: tutores = [],
     isLoading: carregandoTutores,
     isError: erroTutores,
-  } = useQuery({
-    queryKey: ['tutores'],
-    queryFn: listarTutores,
-    refetchOnMount: true,
-  });
+  } = useTutores();
 
-  const mutation = useMutation({
-    mutationFn: async (dadosPet) => {
-      if (editando) {
-        return atualizarPet(pet.id, dadosPet);
-      }
-
-      return criarPet(dadosPet);
-    },
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['pets'],
-      });
-
-      navigation.goBack();
-    },
-
-    onError: () => {
-      setErro(
-        editando
-          ? 'Não foi possível atualizar o pet.'
-          : 'Não foi possível cadastrar o pet.'
-      );
-    },
-  });
+  const mutation = useSalvarPet(pet?.id);
 
   function salvarPet() {
-    if (!nome || !idade || !especie) {
-      setErro('Preencha todos os campos.');
-      return;
-    }
+    const formulario = {
+      nome,
+      idade,
+      especie,
+      nivelRisco,
+      tutor: tutorSelecionado,
+    };
 
-    if (!tutorSelecionado) {
-      setErro('Selecione um tutor.');
+    const erroValidacao = validarPet(formulario);
+
+    if (erroValidacao) {
+      setErro(erroValidacao);
       return;
     }
 
     setErro('');
 
-    const dadosPet = {
-      nome,
-      idade: Number(idade),
-      especie,
-      nivelRisco,
-      tutor: {
-        id: tutorSelecionado.id,
-        nome: tutorSelecionado.nome,
-        email: tutorSelecionado.email,
-        telefone: tutorSelecionado.telefone,
-      },
-    };
-
-    mutation.mutate(dadosPet);
+    mutation.mutate(montarDadosPet(formulario), {
+      onSuccess: () => navigation.goBack(),
+      onError: (error) =>
+        setErro(
+          obterMensagemErro(error, {
+            padrao: editando
+              ? 'Não foi possível atualizar o pet.'
+              : 'Não foi possível cadastrar o pet.',
+          })
+        ),
+    });
   }
 
   return (
@@ -169,7 +137,7 @@ export default function PetFormScreen({ route, navigation }) {
       </Text>
 
       <View style={styles.riscos}>
-        {['BAIXO', 'MEDIO', 'ALTO'].map((risco) => (
+        {NIVEIS_RISCO.map((risco) => (
           <TouchableOpacity
             key={risco}
             style={[

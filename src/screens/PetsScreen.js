@@ -1,6 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
-import { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +7,9 @@ import {
   View,
 } from 'react-native';
 
-import { listarPets } from '../services/petsService';
+import { useAtualizarAoFocar } from '../hooks/useAtualizarAoFocar';
+import { usePets } from '../hooks/usePets';
+import { obterEmojiEspecie } from '../utils/pets';
 
 export default function PetsScreen({ navigation }) {
   const {
@@ -18,17 +17,9 @@ export default function PetsScreen({ navigation }) {
     isLoading,
     isError,
     refetch,
-  } = useQuery({
-    queryKey: ['pets'],
-    queryFn: listarPets,
-    refetchOnMount: true,
-  });
+  } = usePets();
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
+  useAtualizarAoFocar(refetch);
 
   if (isLoading) {
     return (
@@ -110,11 +101,7 @@ export default function PetsScreen({ navigation }) {
           >
             <View style={styles.icone}>
               <Text style={styles.emoji}>
-                {item.especie
-                  ?.toLowerCase()
-                  .trim() === 'gato'
-                  ? '🐱'
-                  : '🐶'}
+                {obterEmojiEspecie(item.especie)}
               </Text>
             </View>
 

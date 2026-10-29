@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,65 +8,55 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
+import { useSalvarTutor } from '../hooks/useTutores';
+import { obterMensagemErro } from '../utils/erros';
 import {
-  atualizarTutor,
-  criarTutor,
-} from '../services/tutoresService';
+  montarDadosTutor,
+  validarTutor,
+} from '../utils/tutores';
 
 export default function TutorFormScreen({ route, navigation }) {
   const tutor = route.params?.tutor;
   const editando = !!tutor;
-
-  const queryClient = useQueryClient();
 
   const [nome, setNome] = useState(tutor?.nome || '');
   const [email, setEmail] = useState(tutor?.email || '');
   const [telefone, setTelefone] = useState(
     tutor?.telefone || ''
   );
+  const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
 
-  const mutation = useMutation({
-    mutationFn: async (dadosTutor) => {
-      if (editando) {
-        return atualizarTutor(tutor.id, dadosTutor);
-      }
-
-      return criarTutor(dadosTutor);
-    },
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['tutores'],
-      });
-
-      navigation.goBack();
-    },
-
-    onError: () => {
-      setErro(
-        editando
-          ? 'Não foi possível atualizar o tutor.'
-          : 'Não foi possível cadastrar o tutor.'
-      );
-    },
-  });
+  const mutation = useSalvarTutor(tutor?.id);
 
   function salvarTutor() {
-    if (!nome || !email || !telefone) {
-      setErro('Preencha todos os campos.');
+    const formulario = {
+      nome,
+      email,
+      telefone,
+      senha,
+    };
+
+    const erroValidacao = validarTutor(formulario, editando);
+
+    if (erroValidacao) {
+      setErro(erroValidacao);
       return;
     }
 
     setErro('');
 
-    const dadosTutor = {
-      nome,
-      email,
-      telefone,
-    };
-
-    mutation.mutate(dadosTutor);
+    mutation.mutate(montarDadosTutor(formulario), {
+      onSuccess: () => navigation.goBack(),
+      onError: (error) =>
+        setErro(
+          obterMensagemErro(error, {
+            padrao: editando
+              ? 'Não foi possível atualizar o tutor.'
+              : 'Não foi possível cadastrar o tutor.',
+          })
+        ),
+    });
   }
 
   return (
@@ -120,6 +109,22 @@ export default function TutorFormScreen({ route, navigation }) {
         value={telefone}
         onChangeText={setTelefone}
         keyboardType="phone-pad"
+      />
+
+      <Text style={styles.label}>
+        {editando ? 'Nova senha (opcional)' : 'Senha de acesso'}
+      </Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder={
+          editando
+            ? 'Deixe em branco para manter'
+            : 'Mínimo de 6 caracteres'
+        }
+        value={senha}
+        onChangeText={setSenha}
+        secureTextEntry
       />
 
       {erro ? (

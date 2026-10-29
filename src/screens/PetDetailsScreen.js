@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import React from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -9,48 +8,16 @@ import {
   View,
 } from 'react-native';
 
-import { excluirPet } from '../services/petsService';
+import { useExcluirPet } from '../hooks/usePets';
+import { obterMensagemErro } from '../utils/erros';
+import { obterEmojiEspecie } from '../utils/pets';
 
 export default function PetDetailsScreen({ route, navigation }) {
   const pet = route.params?.pet;
 
-  const queryClient = useQueryClient();
+  const [erro, setErro] = useState('');
 
-  const [erro, setErro] = React.useState('');
-
-  const mutation = useMutation({
-    mutationFn: () => excluirPet(pet.id),
-
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ['pets'],
-        }),
-
-        queryClient.invalidateQueries({
-          queryKey: ['resumo-risco'],
-        }),
-
-        queryClient.invalidateQueries({
-          queryKey: ['pets-criticos'],
-        }),
-      ]);
-
-      navigation.goBack();
-    },
-
-    onError: (error) => {
-      if (error.response?.status === 403) {
-        setErro(
-          'Você não tem permissão para excluir este pet.'
-        );
-      } else {
-        setErro(
-          'Não foi possível excluir o pet.'
-        );
-      }
-    },
-  });
+  const mutation = useExcluirPet();
 
   function confirmarExclusao() {
     Alert.alert(
@@ -66,7 +33,16 @@ export default function PetDetailsScreen({ route, navigation }) {
           style: 'destructive',
           onPress: () => {
             setErro('');
-            mutation.mutate();
+            mutation.mutate(pet.id, {
+              onSuccess: () => navigation.goBack(),
+              onError: (error) =>
+                setErro(
+                  obterMensagemErro(error, {
+                    403: 'Você não tem permissão para excluir este pet.',
+                    padrao: 'Não foi possível excluir o pet.',
+                  })
+                ),
+            });
           },
         },
       ]
@@ -78,9 +54,7 @@ export default function PetDetailsScreen({ route, navigation }) {
       <View style={styles.card}>
         <View style={styles.icone}>
           <Text style={styles.emoji}>
-            {pet.especie?.toLowerCase() === 'gato'
-              ? '🐱'
-              : '🐶'}
+            {obterEmojiEspecie(pet.especie)}
           </Text>
         </View>
 

@@ -23,3 +23,8 @@ export async function atualizarPet(id, pet) {
 export async function excluirPet(id) {
   await api.delete(`/pets/${id}`);
 }
+
+export async function listarPetsCriticos() {
+  const response = await api.get('/pets/criticos');
+  return response.data;
+}

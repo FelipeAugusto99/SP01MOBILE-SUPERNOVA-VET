@@ -1,13 +1,4 @@
 import {
-  useFocusEffect,
-} from '@react-navigation/native';
-
-import {
-  useQuery,
-} from '@tanstack/react-query';
-
-import {
-  useCallback,
   useLayoutEffect,
 } from 'react';
 
@@ -21,7 +12,8 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useAtualizarAoFocar } from '../hooks/useAtualizarAoFocar';
+import { usePetsCriticos } from '../hooks/usePets';
 
 export default function HomeScreen({ navigation }) {
   const { logout } = useAuth();
@@ -61,19 +53,9 @@ export default function HomeScreen({ navigation }) {
     isLoading,
     isError,
     refetch: refetchPetsCriticos,
-  } = useQuery({
-    queryKey: ['pets-criticos'],
-    queryFn: async () => {
-      const response = await api.get('/pets/criticos');
-      return response.data;
-    },
-  });
+  } = usePetsCriticos();
 
-  useFocusEffect(
-    useCallback(() => {
-      refetchPetsCriticos();
-    }, [refetchPetsCriticos])
-  );
+  useAtualizarAoFocar(refetchPetsCriticos);
 
   return (
     <View style={styles.container}>

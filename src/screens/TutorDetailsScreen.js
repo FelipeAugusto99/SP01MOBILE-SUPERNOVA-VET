@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   Alert,
@@ -8,7 +7,8 @@ import {
   View,
 } from 'react-native';
 
-import { excluirTutor } from '../services/tutoresService';
+import { useExcluirTutor } from '../hooks/useTutores';
+import { obterMensagemErro } from '../utils/erros';
 
 export default function TutorDetailsScreen({
   route,
@@ -16,38 +16,7 @@ export default function TutorDetailsScreen({
 }) {
   const { tutor } = route.params;
 
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: () => excluirTutor(tutor.id),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['tutores'],
-      });
-
-      navigation.goBack();
-    },
-
-    onError: (error) => {
-      if (error.response?.status === 409) {
-        Alert.alert(
-          'Não é possível excluir',
-          'Este tutor possui pets vinculados. Remova ou altere os pets antes de excluir o tutor.'
-        );
-      } else if (error.response?.status === 403) {
-        Alert.alert(
-          'Sem permissão',
-          'Apenas usuários administradores podem excluir tutores.'
-        );
-      } else {
-        Alert.alert(
-          'Erro',
-          'Não foi possível excluir o tutor.'
-        );
-      }
-    },
-  });
+  const mutation = useExcluirTutor();
 
   function deletarTutor() {
     Alert.alert(
@@ -62,7 +31,18 @@ export default function TutorDetailsScreen({
           text: 'Excluir',
           style: 'destructive',
           onPress: () => {
-            mutation.mutate();
+            mutation.mutate(tutor.id, {
+              onSuccess: () => navigation.goBack(),
+              onError: (error) =>
+                Alert.alert(
+                  'Não foi possível excluir',
+                  obterMensagemErro(error, {
+                    409: 'Este tutor possui pets vinculados. Remova ou altere os pets antes de excluir o tutor.',
+                    403: 'Apenas usuários administradores podem excluir tutores.',
+                    padrao: 'Não foi possível excluir o tutor.',
+                  })
+                ),
+            });
           },
         },
       ]

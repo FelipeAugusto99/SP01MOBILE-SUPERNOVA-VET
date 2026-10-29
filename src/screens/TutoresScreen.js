@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   FlatList,
@@ -8,18 +7,14 @@ import {
   View,
 } from 'react-native';
 
-import { listarTutores } from '../services/tutoresService';
+import { useTutores } from '../hooks/useTutores';
 
 export default function TutoresScreen({ navigation }) {
   const {
     data: tutores = [],
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ['tutores'],
-    queryFn: listarTutores,
-    refetchOnMount: true,
-  });
+  } = useTutores();
 
   function renderTutor({ item }) {
     return (
