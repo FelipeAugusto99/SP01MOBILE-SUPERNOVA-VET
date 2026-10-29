@@ -13,6 +13,7 @@ import {
   Icone,
   MensagemErro,
 } from '../components';
+import { usePermissoes } from '../hooks/usePermissoes';
 import { useExcluirPet, usePet } from '../hooks/usePets';
 import { useEstilos } from '../theme/useEstilos';
 import { obterMensagemErro } from '../utils/erros';
@@ -41,6 +42,7 @@ function Informacao({ label, valor }) {
 export default function PetDetailsScreen({ route, navigation }) {
   const petInicial = route.params?.pet;
   const styles = useEstilos(criarEstilos);
+  const { editarPets, excluirPets } = usePermissoes();
 
   const { data: pet = petInicial } = usePet(petInicial.id);
 
@@ -108,18 +110,22 @@ export default function PetDetailsScreen({ route, navigation }) {
 
       <MensagemErro mensagem={erro} />
 
-      <Botao
-        titulo="Editar pet"
-        onPress={() => navigation.navigate('PetForm', { pet })}
-        disabled={mutation.isPending}
-      />
+      {editarPets ? (
+        <Botao
+          titulo="Editar pet"
+          onPress={() => navigation.navigate('PetForm', { pet })}
+          disabled={mutation.isPending}
+        />
+      ) : null}
 
-      <Botao
-        titulo="Excluir pet"
-        variante="perigo"
-        onPress={confirmarExclusao}
-        carregando={mutation.isPending}
-      />
+      {excluirPets ? (
+        <Botao
+          titulo="Excluir pet"
+          variante="perigo"
+          onPress={confirmarExclusao}
+          carregando={mutation.isPending}
+        />
+      ) : null}
     </ScrollView>
   );
 }

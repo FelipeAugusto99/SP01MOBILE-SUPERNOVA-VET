@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Carregando } from '../components';
 import { useAuth } from '../context/AuthContext';
 import { useTema } from '../context/TemaContext';
+import CadastroScreen from '../screens/CadastroScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PetDetailsScreen from '../screens/PetDetailsScreen';
@@ -37,11 +38,25 @@ function criarTemaNavegacao(cores, escuro) {
 }
 
 function RotasPublicas() {
+  const { cores } = useTema();
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: cores.primaria },
+        headerTintColor: cores.textoSobrePrimaria,
+      }}
+    >
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="Cadastro"
+        component={CadastroScreen}
+        options={{ title: 'Criar conta' }}
       />
     </Stack.Navigator>
   );

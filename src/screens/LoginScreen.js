@@ -14,7 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEstilos } from '../theme/useEstilos';
 import { obterMensagemErro } from '../utils/erros';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
   const styles = useEstilos(criarEstilos);
 
@@ -83,6 +83,13 @@ export default function LoginScreen() {
         titulo="Entrar"
         onPress={fazerLogin}
         carregando={carregando}
+      />
+
+      <Botao
+        titulo="Criar conta de tutor"
+        variante="contorno"
+        onPress={() => navigation.navigate('Cadastro')}
+        disabled={carregando}
       />
     </KeyboardAvoidingView>
   );

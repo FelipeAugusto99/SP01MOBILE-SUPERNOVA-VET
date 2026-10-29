@@ -16,6 +16,7 @@ import {
   Opcao,
 } from '../components';
 import { useAtualizarAoFocar } from '../hooks/useAtualizarAoFocar';
+import { usePermissoes } from '../hooks/usePermissoes';
 import { usePets } from '../hooks/usePets';
 import { useEstilos } from '../theme/useEstilos';
 import {
@@ -26,6 +27,7 @@ import {
 
 export default function PetsScreen({ route, navigation }) {
   const styles = useEstilos(criarEstilos);
+  const { verTodosPets, editarPets } = usePermissoes();
 
   const [filtroRisco, setFiltroRisco] = useState(
     route.params?.filtroRisco || null
@@ -58,14 +60,20 @@ export default function PetsScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <CabecalhoTela
-        titulo="Pets"
-        subtitulo="Gerencie os animais cadastrados"
+        titulo={verTodosPets ? 'Pets' : 'Meus pets'}
+        subtitulo={
+          verTodosPets
+            ? 'Gerencie os animais cadastrados'
+            : 'Animais vinculados à sua conta'
+        }
         acao={
-          <Botao
-            titulo="+ Adicionar"
-            compacto
-            onPress={() => navigation.navigate('PetForm')}
-          />
+          editarPets ? (
+            <Botao
+              titulo="+ Adicionar"
+              compacto
+              onPress={() => navigation.navigate('PetForm')}
+            />
+          ) : null
         }
       />
 

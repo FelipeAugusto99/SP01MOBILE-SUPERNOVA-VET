@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useTema } from '../context/TemaContext';
 import { useAtualizarAoFocar } from '../hooks/useAtualizarAoFocar';
+import { usePermissoes } from '../hooks/usePermissoes';
 import { usePetsCriticos } from '../hooks/usePets';
 import { useEstilos } from '../theme/useEstilos';
 
@@ -48,6 +49,7 @@ function CardMenu({ emoji, titulo, descricao, onPress }) {
 export default function HomeScreen({ navigation }) {
   const { usuario, logout } = useAuth();
   const { escuro, alterarPreferencia } = useTema();
+  const { verTodosPets, gerenciarTutores } = usePermissoes();
   const styles = useEstilos(criarEstilos);
 
   const {
@@ -110,26 +112,34 @@ export default function HomeScreen({ navigation }) {
       </Text>
 
       <Text style={styles.subtitulo}>
-        Gerencie os pets e tutores da clínica em um só lugar.
+        {verTodosPets
+          ? 'Gerencie os pets e tutores da clínica em um só lugar.'
+          : 'Acompanhe a saúde dos seus pets na clínica.'}
       </Text>
 
       <Text style={styles.secao}>
-        Gestão
+        {verTodosPets ? 'Gestão' : 'Meus pets'}
       </Text>
 
       <CardMenu
         emoji="🐶"
-        titulo="Pets"
-        descricao="Cadastre, edite e acompanhe os animais"
+        titulo={verTodosPets ? 'Pets' : 'Meus pets'}
+        descricao={
+          verTodosPets
+            ? 'Cadastre, edite e acompanhe os animais'
+            : 'Veja os dados e o nível de risco dos seus animais'
+        }
         onPress={() => navigation.navigate('Pets')}
       />
 
-      <CardMenu
-        emoji="👤"
-        titulo="Tutores"
-        descricao="Gerencie os responsáveis pelos pets"
-        onPress={() => navigation.navigate('Tutores')}
-      />
+      {gerenciarTutores ? (
+        <CardMenu
+          emoji="👤"
+          titulo="Tutores"
+          descricao="Gerencie os responsáveis pelos pets"
+          onPress={() => navigation.navigate('Tutores')}
+        />
+      ) : null}
 
       <Text style={styles.secao}>
         Atenção

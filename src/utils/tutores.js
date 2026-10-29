@@ -25,6 +25,20 @@ export function validarTutor({ nome, email, telefone, senha }, editando) {
   return null;
 }
 
+export function validarCadastro(formulario) {
+  const erro = validarTutor(formulario, false);
+
+  if (erro) {
+    return erro;
+  }
+
+  if (formulario.senha !== formulario.confirmacaoSenha) {
+    return 'As senhas não conferem.';
+  }
+
+  return null;
+}
+
 export function montarDadosTutor({ nome, email, telefone, senha }) {
   const dados = {
     nome: nome.trim(),

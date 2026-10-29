@@ -10,3 +10,9 @@ export async function buscarUsuarioLogado(username, password) {
 
   return response.data;
 }
+
+export async function cadastrarUsuario(dadosUsuario) {
+  const response = await api.post('/auth/register', dadosUsuario);
+
+  return response.data;
+}

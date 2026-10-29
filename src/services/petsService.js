@@ -28,3 +28,8 @@ export async function listarPetsCriticos() {
   const response = await api.get('/pets/criticos');
   return response.data;
 }
+
+export async function listarMeusPets() {
+  const response = await api.get('/pets/meus');
+  return response.data;
+}
