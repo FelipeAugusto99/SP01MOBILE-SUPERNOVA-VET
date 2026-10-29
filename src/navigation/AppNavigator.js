@@ -17,6 +17,7 @@ import LoginScreen from '../screens/LoginScreen';
 import PetDetailsScreen from '../screens/PetDetailsScreen';
 import PetFormScreen from '../screens/PetFormScreen';
 import PetsScreen from '../screens/PetsScreen';
+import SobreScreen from '../screens/SobreScreen';
 import TutorDetailsScreen from '../screens/TutorDetailsScreen';
 import TutorFormScreen from '../screens/TutorFormScreen';
 import TutoresScreen from '../screens/TutoresScreen';
@@ -127,6 +128,12 @@ function RotasAutenticadas() {
         options={({ route }) => ({
           title: route.params?.tutor ? 'Editar Tutor' : 'Cadastrar Tutor',
         })}
+      />
+
+      <Stack.Screen
+        name="Sobre"
+        component={SobreScreen}
+        options={{ title: 'Sobre o App' }}
       />
     </Stack.Navigator>
   );

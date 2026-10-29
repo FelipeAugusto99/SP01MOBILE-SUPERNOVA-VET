@@ -202,6 +202,17 @@ export default function HomeScreen({ navigation }) {
           )}
         </Card>
       )}
+
+      <Text style={styles.secao}>
+        Mais
+      </Text>
+
+      <CardMenu
+        emoji="ℹ️"
+        titulo="Sobre o App"
+        descricao="Versão publicada, commit de referência e aparência"
+        onPress={() => navigation.navigate('Sobre')}
+      />
     </ScrollView>
   );
 }
