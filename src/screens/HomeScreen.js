@@ -1,52 +1,54 @@
+import { useLayoutEffect } from 'react';
 import {
-  useLayoutEffect,
-} from 'react';
-
-import {
-  ActivityIndicator,
   Alert,
-  StyleSheet,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
+import {
+  Card,
+  Carregando,
+  Icone,
+} from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useTema } from '../context/TemaContext';
 import { useAtualizarAoFocar } from '../hooks/useAtualizarAoFocar';
 import { usePetsCriticos } from '../hooks/usePets';
+import { useEstilos } from '../theme/useEstilos';
+
+function CardMenu({ emoji, titulo, descricao, onPress }) {
+  const styles = useEstilos(criarEstilos);
+
+  return (
+    <Card
+      style={styles.cardMenu}
+      onPress={onPress}
+    >
+      <Icone conteudo={emoji} />
+
+      <View style={styles.cardConteudo}>
+        <Text style={styles.cardTitulo}>
+          {titulo}
+        </Text>
+
+        <Text style={styles.cardDescricao}>
+          {descricao}
+        </Text>
+      </View>
+
+      <Text style={styles.seta}>
+        ›
+      </Text>
+    </Card>
+  );
+}
 
 export default function HomeScreen({ navigation }) {
-  const { logout } = useAuth();
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={confirmarLogout}>
-          <Text style={styles.sair}>
-            Sair
-          </Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
-
-  function confirmarLogout() {
-    Alert.alert(
-      'Sair',
-      'Deseja encerrar a sessão?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: logout,
-        },
-      ]
-    );
-  }
+  const { usuario, logout } = useAuth();
+  const { escuro, alterarPreferencia } = useTema();
+  const styles = useEstilos(criarEstilos);
 
   const {
     data: petsCriticos = [],
@@ -57,123 +59,104 @@ export default function HomeScreen({ navigation }) {
 
   useAtualizarAoFocar(refetchPetsCriticos);
 
+  useLayoutEffect(() => {
+    function confirmarLogout() {
+      Alert.alert(
+        'Sair',
+        'Deseja encerrar a sessão?',
+        [
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+          },
+          {
+            text: 'Sair',
+            style: 'destructive',
+            onPress: logout,
+          },
+        ]
+      );
+    }
+
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.acoesHeader}>
+          <TouchableOpacity
+            onPress={() => alterarPreferencia(escuro ? 'claro' : 'escuro')}
+            accessibilityLabel="Alternar tema"
+          >
+            <Text style={styles.iconeTema}>
+              {escuro ? '☀️' : '🌙'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={confirmarLogout}>
+            <Text style={styles.sair}>
+              Sair
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, logout, styles, escuro, alterarPreferencia]);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerTexto}>
-          <Text style={styles.welcome}>
-            Bem-vindo ao
-          </Text>
-
-          <Text style={styles.title}>
-            SuperNova VET
-          </Text>
-        </View>
-
-        <View style={styles.logoContainer}>
-          <Text style={styles.logo}>
-            🐾
-          </Text>
-        </View>
-      </View>
-
-      <Text style={styles.subtitle}>
-        Gerencie os pets e tutores da clínica
-        em um só lugar.
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+    >
+      <Text style={styles.boasVindas}>
+        Olá, {usuario.username}
       </Text>
 
-      <Text style={styles.sectionTitle}>
+      <Text style={styles.subtitulo}>
+        Gerencie os pets e tutores da clínica em um só lugar.
+      </Text>
+
+      <Text style={styles.secao}>
         Gestão
       </Text>
 
-      <View style={styles.principalContainer}>
-        <TouchableOpacity
-          style={styles.principalCard}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('Pets')}
-        >
-          <View style={styles.cardIcon}>
-            <Text style={styles.cardEmoji}>
-              🐶
-            </Text>
-          </View>
+      <CardMenu
+        emoji="🐶"
+        titulo="Pets"
+        descricao="Cadastre, edite e acompanhe os animais"
+        onPress={() => navigation.navigate('Pets')}
+      />
 
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>
-              Pets
-            </Text>
+      <CardMenu
+        emoji="👤"
+        titulo="Tutores"
+        descricao="Gerencie os responsáveis pelos pets"
+        onPress={() => navigation.navigate('Tutores')}
+      />
 
-            <Text style={styles.cardDescription}>
-              Cadastre, edite e acompanhe os animais
-            </Text>
-          </View>
-
-          <Text style={styles.arrow}>
-            ›
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.principalCard}
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate('Tutores')}
-        >
-          <View style={styles.cardIcon}>
-            <Text style={styles.cardEmoji}>
-              👤
-            </Text>
-          </View>
-
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>
-              Tutores
-            </Text>
-
-            <Text style={styles.cardDescription}>
-              Gerencie os responsáveis pelos pets
-            </Text>
-          </View>
-
-          <Text style={styles.arrow}>
-            ›
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.sectionTitle}>
+      <Text style={styles.secao}>
         Atenção
       </Text>
 
       {isLoading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator
-            size="large"
-            color="#6C63FF"
+        <Card>
+          <Carregando
+            mensagem="Carregando informações..."
+            telaCheia={false}
           />
-
-          <Text style={styles.loadingText}>
-            Carregando informações...
-          </Text>
-        </View>
+        </Card>
       ) : isError ? (
-        <View style={styles.errorCard}>
-          <Text style={styles.errorIcon}>
-            ⚠️
+        <Card>
+          <Text style={styles.erro}>
+            ⚠️ Não foi possível carregar os pets críticos.
           </Text>
-
-          <Text style={styles.errorText}>
-            Não foi possível carregar os pets críticos.
-          </Text>
-        </View>
+        </Card>
       ) : (
-        <View style={styles.criticosCard}>
+        <Card>
           <View style={styles.criticosTopo}>
-            <View>
+            <View style={styles.criticosTextos}>
               <Text style={styles.criticosTitulo}>
                 Pets em situação crítica
               </Text>
 
-              <Text style={styles.criticosSubtitulo}>
+              <Text style={styles.cardDescricao}>
                 Acompanhe os animais que precisam de atenção
               </Text>
             </View>
@@ -187,199 +170,115 @@ export default function HomeScreen({ navigation }) {
 
           {petsCriticos.length > 0 ? (
             <TouchableOpacity
-              style={styles.criticosBotao}
-              onPress={() => navigation.navigate('Pets')}
+              style={styles.criticosRodape}
+              onPress={() =>
+                navigation.navigate('Pets', {
+                  filtroRisco: 'ALTO',
+                })
+              }
             >
-              <Text style={styles.criticosBotaoTexto}>
+              <Text style={styles.criticosLink}>
                 Ver pets críticos
               </Text>
 
-              <Text style={styles.criticosSeta}>
+              <Text style={styles.criticosLink}>
                 →
               </Text>
             </TouchableOpacity>
           ) : (
-            <Text style={styles.semCriticos}>
+            <Text style={[styles.criticosRodape, styles.semCriticos]}>
               Nenhum pet crítico no momento.
             </Text>
           )}
-        </View>
+        </Card>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores) => ({
+  container: {
+    flex: 1,
+    backgroundColor: cores.fundo,
+  },
+
+  conteudo: {
+    paddingHorizontal: 22,
+    paddingTop: 25,
+    paddingBottom: 30,
+  },
+
+  acoesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
+
+  iconeTema: {
+    fontSize: 18,
+  },
+
   sair: {
-    color: '#fff',
+    color: cores.textoSobrePrimaria,
     fontSize: 15,
     fontWeight: 'bold',
   },
 
-  container: {
-    flex: 1,
-    backgroundColor: '#F6F5FF',
-    paddingHorizontal: 22,
-    paddingTop: 30,
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-
-  headerTexto: {
-    flex: 1,
-  },
-
-  welcome: {
-    fontSize: 14,
-    color: '#77738F',
-    marginBottom: 3,
-  },
-
-  title: {
-    fontSize: 30,
+  boasVindas: {
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#29254A',
+    color: cores.texto,
+    marginBottom: 6,
   },
 
-  logoContainer: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: '#6C63FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 15,
-  },
-
-  logo: {
-    fontSize: 30,
-  },
-
-  subtitle: {
+  subtitulo: {
     fontSize: 14,
     lineHeight: 21,
-    color: '#77738F',
-    marginBottom: 28,
-    maxWidth: 340,
-  },
-
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#29254A',
-    marginBottom: 12,
-  },
-
-  principalContainer: {
+    color: cores.textoSecundario,
     marginBottom: 24,
   },
 
-  principalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-
-  cardIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#EEECFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-
-  cardEmoji: {
-    fontSize: 27,
-  },
-
-  cardContent: {
-    flex: 1,
-  },
-
-  cardTitle: {
+  secao: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#29254A',
+    color: cores.texto,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+
+  cardMenu: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  cardConteudo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+
+  cardTitulo: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: cores.texto,
     marginBottom: 4,
   },
 
-  cardDescription: {
+  cardDescricao: {
     fontSize: 12,
-    color: '#858195',
+    color: cores.textoSecundario,
     lineHeight: 17,
   },
 
-  arrow: {
+  seta: {
     fontSize: 30,
-    color: '#6C63FF',
+    color: cores.primaria,
     marginLeft: 8,
   },
 
-  loading: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 25,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-
-  loadingText: {
-    marginTop: 10,
-    fontSize: 13,
-    color: '#77738F',
-  },
-
-  errorCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-
-  errorIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-
-  errorText: {
-    color: '#D32F2F',
+  erro: {
+    color: cores.perigo,
     fontSize: 13,
     textAlign: 'center',
-  },
-
-  criticosCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
 
   criticosTopo: {
@@ -388,61 +287,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  criticosTextos: {
+    flex: 1,
+    marginRight: 10,
+  },
+
   criticosTitulo: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#29254A',
+    color: cores.texto,
     marginBottom: 3,
-  },
-
-  criticosSubtitulo: {
-    fontSize: 12,
-    color: '#858195',
-    maxWidth: 260,
   },
 
   criticosBadge: {
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: '#FFF0F0',
+    backgroundColor: cores.perigoFundo,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   criticosBadgeTexto: {
-    color: '#D32F2F',
+    color: cores.perigo,
     fontSize: 16,
     fontWeight: 'bold',
   },
 
-  criticosBotao: {
+  criticosRodape: {
     marginTop: 15,
     paddingTop: 13,
     borderTopWidth: 1,
-    borderTopColor: '#F0EFF5',
+    borderTopColor: cores.divisor,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
 
-  criticosBotaoTexto: {
-    color: '#6C63FF',
+  criticosLink: {
+    color: cores.primaria,
     fontSize: 13,
     fontWeight: 'bold',
   },
 
-  criticosSeta: {
-    color: '#6C63FF',
-    fontSize: 20,
-  },
-
   semCriticos: {
-    marginTop: 15,
-    paddingTop: 13,
-    borderTopWidth: 1,
-    borderTopColor: '#F0EFF5',
-    color: '#77738F',
+    color: cores.textoSecundario,
     fontSize: 12,
   },
 });

@@ -34,6 +34,14 @@ export function usePets() {
   });
 }
 
+export function usePet(petId) {
+  return useQuery({
+    queryKey: petsKeys.lista,
+    queryFn: listarPets,
+    select: (pets) => pets.find((pet) => pet.id === petId),
+  });
+}
+
 export function usePetsCriticos() {
   return useQuery({
     queryKey: petsKeys.criticos,

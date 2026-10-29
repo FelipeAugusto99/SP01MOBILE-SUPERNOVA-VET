@@ -6,6 +6,14 @@ export function obterEmojiEspecie(especie) {
     : '🐶';
 }
 
+export function filtrarPorRisco(pets, nivelRisco) {
+  if (!nivelRisco) {
+    return pets;
+  }
+
+  return pets.filter((pet) => pet.nivelRisco === nivelRisco);
+}
+
 export function validarPet({ nome, idade, especie, tutor }) {
   if (!nome.trim() || !idade || !especie.trim()) {
     return 'Preencha todos os campos.';

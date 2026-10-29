@@ -1,19 +1,48 @@
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
-  StyleSheet,
+  ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
-import { useExcluirPet } from '../hooks/usePets';
+import {
+  BadgeRisco,
+  Botao,
+  Card,
+  Icone,
+  MensagemErro,
+} from '../components';
+import { useExcluirPet, usePet } from '../hooks/usePets';
+import { useEstilos } from '../theme/useEstilos';
 import { obterMensagemErro } from '../utils/erros';
 import { obterEmojiEspecie } from '../utils/pets';
 
+function Informacao({ label, valor }) {
+  const styles = useEstilos(criarEstilos);
+
+  return (
+    <View style={styles.informacao}>
+      <Text style={styles.label}>
+        {label}
+      </Text>
+
+      {typeof valor === 'string' ? (
+        <Text style={styles.valor}>
+          {valor}
+        </Text>
+      ) : (
+        valor
+      )}
+    </View>
+  );
+}
+
 export default function PetDetailsScreen({ route, navigation }) {
-  const pet = route.params?.pet;
+  const petInicial = route.params?.pet;
+  const styles = useEstilos(criarEstilos);
+
+  const { data: pet = petInicial } = usePet(petInicial.id);
 
   const [erro, setErro] = useState('');
 
@@ -50,156 +79,93 @@ export default function PetDetailsScreen({ route, navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.icone}>
-          <Text style={styles.emoji}>
-            {obterEmojiEspecie(pet.especie)}
-          </Text>
-        </View>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+    >
+      <Card style={styles.card}>
+        <Icone
+          conteudo={obterEmojiEspecie(pet.especie)}
+          tamanho={80}
+          style={styles.icone}
+        />
 
         <Text style={styles.nome}>
           {pet.nome}
         </Text>
 
-        <Text style={styles.info}>
-          Espécie: {pet.especie}
-        </Text>
+        <Informacao label="Espécie" valor={pet.especie} />
+        <Informacao label="Idade" valor={`${pet.idade} anos`} />
+        <Informacao
+          label="Nível de risco"
+          valor={<BadgeRisco nivel={pet.nivelRisco} />}
+        />
+        <Informacao
+          label="Tutor"
+          valor={pet.tutor?.nome || 'Não informado'}
+        />
+      </Card>
 
-        <Text style={styles.info}>
-          Idade: {pet.idade} anos
-        </Text>
+      <MensagemErro mensagem={erro} />
 
-        <Text style={styles.info}>
-          Nível de risco: {pet.nivelRisco}
-        </Text>
-
-        <Text style={styles.info}>
-          Tutor: {pet.tutor?.nome || 'Não informado'}
-        </Text>
-      </View>
-
-      {erro ? (
-        <Text style={styles.erro}>
-          {erro}
-        </Text>
-      ) : null}
-
-      <TouchableOpacity
-        style={styles.botaoEditar}
-        onPress={() =>
-          navigation.navigate('PetForm', {
-            pet,
-          })
-        }
+      <Botao
+        titulo="Editar pet"
+        onPress={() => navigation.navigate('PetForm', { pet })}
         disabled={mutation.isPending}
-      >
-        <Text style={styles.textoBotaoEditar}>
-          Editar pet
-        </Text>
-      </TouchableOpacity>
+      />
 
-      <TouchableOpacity
-        style={styles.botaoExcluir}
+      <Botao
+        titulo="Excluir pet"
+        variante="perigo"
         onPress={confirmarExclusao}
-        disabled={mutation.isPending}
-      >
-        {mutation.isPending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.textoBotaoExcluir}>
-            Excluir pet
-          </Text>
-        )}
-      </TouchableOpacity>
-    </View>
+        carregando={mutation.isPending}
+      />
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores) => ({
   container: {
     flex: 1,
-    backgroundColor: '#F6F5FF',
+    backgroundColor: cores.fundo,
+  },
+
+  conteudo: {
     padding: 20,
   },
 
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
     padding: 25,
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
 
   icone: {
-    width: 80,
-    height: 80,
-    borderRadius: 22,
-    backgroundColor: '#EEECFF',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 15,
-  },
-
-  emoji: {
-    fontSize: 40,
   },
 
   nome: {
     fontSize: 25,
     fontWeight: 'bold',
-    color: '#29254A',
+    color: cores.texto,
     marginBottom: 20,
   },
 
-  info: {
+  informacao: {
     width: '100%',
-    fontSize: 15,
-    color: '#55516A',
-    marginBottom: 10,
+    marginBottom: 14,
   },
 
-  erro: {
-    color: '#D32F2F',
-    textAlign: 'center',
-    fontSize: 14,
-    marginBottom: 15,
-  },
-
-  botaoEditar: {
-    backgroundColor: '#6C63FF',
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-
-  textoBotaoEditar: {
-    color: '#fff',
-    fontSize: 15,
+  label: {
+    fontSize: 11,
+    color: cores.textoTerciario,
+    textTransform: 'uppercase',
     fontWeight: 'bold',
+    marginBottom: 4,
   },
 
-  botaoExcluir: {
-    backgroundColor: '#D32F2F',
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-
-  textoBotaoExcluir: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: 'bold',
+  valor: {
+    fontSize: 16,
+    color: cores.texto,
   },
 });

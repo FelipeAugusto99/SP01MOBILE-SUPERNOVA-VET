@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import {
-  ActivityIndicator,
   ScrollView,
-  StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
 } from 'react-native';
 
+import {
+  Botao,
+  CampoTexto,
+  MensagemErro,
+} from '../components';
 import { useSalvarTutor } from '../hooks/useTutores';
+import { useEstilos } from '../theme/useEstilos';
 import { obterMensagemErro } from '../utils/erros';
 import {
   montarDadosTutor,
@@ -18,12 +20,11 @@ import {
 export default function TutorFormScreen({ route, navigation }) {
   const tutor = route.params?.tutor;
   const editando = !!tutor;
+  const styles = useEstilos(criarEstilos);
 
   const [nome, setNome] = useState(tutor?.nome || '');
   const [email, setEmail] = useState(tutor?.email || '');
-  const [telefone, setTelefone] = useState(
-    tutor?.telefone || ''
-  );
+  const [telefone, setTelefone] = useState(tutor?.telefone || '');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
 
@@ -64,34 +65,23 @@ export default function TutorFormScreen({ route, navigation }) {
       style={styles.container}
       contentContainerStyle={styles.conteudo}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.titulo}>
-        {editando ? 'Editar Tutor' : 'Cadastrar Tutor'}
-      </Text>
-
       <Text style={styles.subtitulo}>
         {editando
           ? 'Atualize os dados do responsável'
           : 'Adicione um novo responsável ao sistema'}
       </Text>
 
-      <Text style={styles.label}>
-        Nome
-      </Text>
-
-      <TextInput
-        style={styles.input}
+      <CampoTexto
+        label="Nome"
         placeholder="Ex: João da Silva"
         value={nome}
         onChangeText={setNome}
       />
 
-      <Text style={styles.label}>
-        E-mail
-      </Text>
-
-      <TextInput
-        style={styles.input}
+      <CampoTexto
+        label="E-mail"
         placeholder="Ex: joao@email.com"
         value={email}
         onChangeText={setEmail}
@@ -99,24 +89,16 @@ export default function TutorFormScreen({ route, navigation }) {
         autoCapitalize="none"
       />
 
-      <Text style={styles.label}>
-        Telefone
-      </Text>
-
-      <TextInput
-        style={styles.input}
+      <CampoTexto
+        label="Telefone"
         placeholder="Ex: 11999999999"
         value={telefone}
         onChangeText={setTelefone}
         keyboardType="phone-pad"
       />
 
-      <Text style={styles.label}>
-        {editando ? 'Nova senha (opcional)' : 'Senha de acesso'}
-      </Text>
-
-      <TextInput
-        style={styles.input}
+      <CampoTexto
+        label={editando ? 'Nova senha (opcional)' : 'Senha de acesso'}
         placeholder={
           editando
             ? 'Deixe em branco para manter'
@@ -127,35 +109,21 @@ export default function TutorFormScreen({ route, navigation }) {
         secureTextEntry
       />
 
-      {erro ? (
-        <Text style={styles.erro}>
-          {erro}
-        </Text>
-      ) : null}
+      <MensagemErro mensagem={erro} />
 
-      <TouchableOpacity
-        style={styles.botao}
+      <Botao
+        titulo={editando ? 'Salvar alterações' : 'Cadastrar tutor'}
         onPress={salvarTutor}
-        disabled={mutation.isPending}
-      >
-        {mutation.isPending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.textoBotao}>
-            {editando
-              ? 'Salvar Alterações'
-              : 'Cadastrar Tutor'}
-          </Text>
-        )}
-      </TouchableOpacity>
+        carregando={mutation.isPending}
+      />
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores) => ({
   container: {
     flex: 1,
-    backgroundColor: '#F6F5FF',
+    backgroundColor: cores.fundo,
   },
 
   conteudo: {
@@ -163,54 +131,9 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  titulo: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#6C63FF',
-    marginTop: 20,
-    marginBottom: 8,
-  },
-
   subtitulo: {
     fontSize: 16,
-    color: '#77738F',
-    marginBottom: 30,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#403B5C',
-    marginBottom: 6,
-  },
-
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 18,
-    fontSize: 16,
-  },
-
-  botao: {
-    backgroundColor: '#6C63FF',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 5,
-  },
-
-  textoBotao: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: 'bold',
-  },
-
-  erro: {
-    color: '#D32F2F',
-    textAlign: 'center',
-    marginBottom: 15,
+    color: cores.textoSecundario,
+    marginBottom: 25,
   },
 });

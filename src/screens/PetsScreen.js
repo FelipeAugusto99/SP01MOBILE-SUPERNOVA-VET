@@ -1,17 +1,36 @@
+import { useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
-  StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
+import {
+  BadgeRisco,
+  Botao,
+  CabecalhoTela,
+  Card,
+  Carregando,
+  ErroCarregamento,
+  Icone,
+  Opcao,
+} from '../components';
 import { useAtualizarAoFocar } from '../hooks/useAtualizarAoFocar';
 import { usePets } from '../hooks/usePets';
-import { obterEmojiEspecie } from '../utils/pets';
+import { useEstilos } from '../theme/useEstilos';
+import {
+  filtrarPorRisco,
+  NIVEIS_RISCO,
+  obterEmojiEspecie,
+} from '../utils/pets';
 
-export default function PetsScreen({ navigation }) {
+export default function PetsScreen({ route, navigation }) {
+  const styles = useEstilos(criarEstilos);
+
+  const [filtroRisco, setFiltroRisco] = useState(
+    route.params?.filtroRisco || null
+  );
+
   const {
     data: pets = [],
     isLoading,
@@ -22,88 +41,63 @@ export default function PetsScreen({ navigation }) {
   useAtualizarAoFocar(refetch);
 
   if (isLoading) {
-    return (
-      <View style={styles.centralizado}>
-        <ActivityIndicator
-          size="large"
-          color="#6C63FF"
-        />
-
-        <Text style={styles.carregando}>
-          Carregando pets...
-        </Text>
-      </View>
-    );
+    return <Carregando mensagem="Carregando pets..." />;
   }
 
   if (isError) {
     return (
-      <View style={styles.centralizado}>
-        <Text style={styles.erro}>
-          Não foi possível carregar os pets.
-        </Text>
-
-        <TouchableOpacity
-          style={styles.botaoTentar}
-          onPress={() => refetch()}
-        >
-          <Text style={styles.textoBotaoTentar}>
-            Tentar novamente
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ErroCarregamento
+        mensagem="Não foi possível carregar os pets."
+        onTentarNovamente={refetch}
+      />
     );
   }
 
+  const petsFiltrados = filtrarPorRisco(pets, filtroRisco);
+
   return (
     <View style={styles.container}>
-      <View style={styles.topo}>
-        <View>
-          <Text style={styles.titulo}>
-            Pets
-          </Text>
+      <CabecalhoTela
+        titulo="Pets"
+        subtitulo="Gerencie os animais cadastrados"
+        acao={
+          <Botao
+            titulo="+ Adicionar"
+            compacto
+            onPress={() => navigation.navigate('PetForm')}
+          />
+        }
+      />
 
-          <Text style={styles.subtitulo}>
-            Gerencie os animais cadastrados
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.botaoAdicionar}
-          onPress={() =>
-            navigation.navigate('PetForm')
-          }
-        >
-          <Text style={styles.textoAdicionar}>
-            + Adicionar
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.filtros}>
+        {[null, ...NIVEIS_RISCO].map((nivel) => (
+          <Opcao
+            key={nivel || 'TODOS'}
+            titulo={nivel || 'TODOS'}
+            selecionada={filtroRisco === nivel}
+            onPress={() => setFiltroRisco(nivel)}
+            style={styles.filtro}
+          />
+        ))}
       </View>
 
       <FlatList
-        data={pets}
-        keyExtractor={(item) =>
-          item.id.toString()
-        }
+        data={petsFiltrados}
+        keyExtractor={(item) => String(item.id)}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.lista}
+        onRefresh={refetch}
+        refreshing={false}
         renderItem={({ item }) => (
-          <TouchableOpacity
+          <Card
             style={styles.card}
             onPress={() =>
-              navigation.navigate(
-                'PetDetails',
-                {
-                  pet: item,
-                }
-              )
+              navigation.navigate('PetDetails', {
+                pet: item,
+              })
             }
           >
-            <View style={styles.icone}>
-              <Text style={styles.emoji}>
-                {obterEmojiEspecie(item.especie)}
-              </Text>
-            </View>
+            <Icone conteudo={obterEmojiEspecie(item.especie)} />
 
             <View style={styles.informacoes}>
               <Text style={styles.nome}>
@@ -115,16 +109,18 @@ export default function PetsScreen({ navigation }) {
               </Text>
 
               <Text style={styles.tutor}>
-                Tutor:{' '}
-                {item.tutor?.nome ||
-                  'Não informado'}
+                Tutor: {item.tutor?.nome || 'Não informado'}
               </Text>
             </View>
-          </TouchableOpacity>
+
+            <BadgeRisco nivel={item.nivelRisco} />
+          </Card>
         )}
         ListEmptyComponent={
           <Text style={styles.vazio}>
-            Nenhum pet cadastrado.
+            {filtroRisco
+              ? `Nenhum pet com risco ${filtroRisco}.`
+              : 'Nenhum pet cadastrado.'}
           </Text>
         }
       />
@@ -132,43 +128,25 @@ export default function PetsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const criarEstilos = (cores) => ({
   container: {
     flex: 1,
-    backgroundColor: '#F6F5FF',
-    padding: 20,
+    backgroundColor: cores.fundo,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
 
-  topo: {
+  filtros: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 16,
+  },
+
+  filtro: {
+    flex: 1,
     alignItems: 'center',
-    marginBottom: 20,
-  },
-
-  titulo: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#29254A',
-  },
-
-  subtitulo: {
-    fontSize: 13,
-    color: '#88849B',
-    marginTop: 4,
-  },
-
-  botaoAdicionar: {
-    backgroundColor: '#6C63FF',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-  },
-
-  textoAdicionar: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 13,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
   },
 
   lista: {
@@ -176,95 +154,37 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 15,
-    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-
-  icone: {
-    width: 55,
-    height: 55,
-    borderRadius: 16,
-    backgroundColor: '#EEECFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-
-  emoji: {
-    fontSize: 28,
   },
 
   informacoes: {
     flex: 1,
+    marginHorizontal: 14,
   },
 
   nome: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#29254A',
+    color: cores.texto,
     marginBottom: 4,
   },
 
   detalhes: {
     fontSize: 13,
-    color: '#6C63FF',
+    color: cores.primaria,
     marginBottom: 4,
   },
 
   tutor: {
     fontSize: 12,
-    color: '#88849B',
+    color: cores.textoSecundario,
   },
 
   vazio: {
     textAlign: 'center',
-    color: '#88849B',
+    color: cores.textoSecundario,
     marginTop: 40,
     fontSize: 14,
-  },
-
-  centralizado: {
-    flex: 1,
-    backgroundColor: '#F6F5FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-
-  carregando: {
-    marginTop: 10,
-    color: '#6C63FF',
-    fontSize: 14,
-  },
-
-  erro: {
-    color: '#D32F2F',
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-
-  botaoTentar: {
-    backgroundColor: '#6C63FF',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-  },
-
-  textoBotaoTentar: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 });

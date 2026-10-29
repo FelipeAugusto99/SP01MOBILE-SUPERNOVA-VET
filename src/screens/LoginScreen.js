@@ -1,135 +1,119 @@
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
 } from 'react-native';
 
+import {
+  Botao,
+  CampoTexto,
+  MensagemErro,
+} from '../components';
 import { useAuth } from '../context/AuthContext';
+import { useEstilos } from '../theme/useEstilos';
+import { obterMensagemErro } from '../utils/erros';
 
 export default function LoginScreen() {
-    const { login } = useAuth();
+  const { login } = useAuth();
+  const styles = useEstilos(criarEstilos);
 
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [carregando, setCarregando] = useState(false);
-    const [erro, setErro] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState('');
 
-    async function fazerLogin() {
-        if (!username || !password) {
-            setErro('Preencha usuário e senha.');
-            return;
-        }
-
-        try {
-            setCarregando(true);
-            setErro('');
-
-            await login(username, password);
-        } catch (error) {
-            setErro(
-                error.response?.status === 401
-                    ? 'Usuário ou senha inválidos.'
-                    : 'Não foi possível conectar ao servidor.'
-            );
-        } finally {
-            setCarregando(false);
-        }
+  async function fazerLogin() {
+    if (!email.trim() || !senha) {
+      setErro('Preencha e-mail e senha.');
+      return;
     }
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.titulo}>SuperNova Vet</Text>
+    try {
+      setCarregando(true);
+      setErro('');
 
-            <Text style={styles.subtitulo}>
-                Acesse sua conta
-            </Text>
+      await login(email.trim().toLowerCase(), senha);
+    } catch (error) {
+      setErro(
+        obterMensagemErro(error, {
+          401: 'E-mail ou senha inválidos.',
+        })
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
 
-            <TextInput
-                style={styles.input}
-                placeholder="Usuário"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-            />
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <Text style={styles.logo}>
+        🐾
+      </Text>
 
-            <TextInput
-                style={styles.input}
-                placeholder="Senha"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
+      <Text style={styles.titulo}>
+        SuperNova VET
+      </Text>
 
-            {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+      <Text style={styles.subtitulo}>
+        Acesse sua conta
+      </Text>
 
-            <TouchableOpacity
-                style={styles.botao}
-                onPress={fazerLogin}
-                disabled={carregando}
-            >
-                {carregando ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={styles.textoBotao}>Entrar</Text>
-                )}
-            </TouchableOpacity>
-        </View>
-    );
+      <CampoTexto
+        placeholder="E-mail"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+
+      <CampoTexto
+        placeholder="Senha"
+        value={senha}
+        onChangeText={setSenha}
+        secureTextEntry
+      />
+
+      <MensagemErro mensagem={erro} />
+
+      <Botao
+        titulo="Entrar"
+        onPress={fazerLogin}
+        carregando={carregando}
+      />
+    </KeyboardAvoidingView>
+  );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 25,
-        backgroundColor: '#fff',
-    },
+const criarEstilos = (cores) => ({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 25,
+    backgroundColor: cores.fundo,
+  },
 
-    titulo: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#6C63FF',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
+  logo: {
+    fontSize: 48,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
 
-    subtitulo: {
-        fontSize: 18,
-        textAlign: 'center',
-        color: '#666',
-        marginBottom: 30,
-    },
+  titulo: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: cores.primaria,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
 
-    input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        padding: 14,
-        marginBottom: 15,
-        fontSize: 16,
-    },
-
-    botao: {
-        backgroundColor: '#6C63FF',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 5,
-    },
-
-    textoBotao: {
-        color: '#fff',
-        fontSize: 17,
-        fontWeight: 'bold',
-    },
-
-    erro: {
-        color: '#d32f2f',
-        textAlign: 'center',
-        marginBottom: 10,
-    },
+  subtitulo: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: cores.textoSecundario,
+    marginBottom: 30,
+  },
 });

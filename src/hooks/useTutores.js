@@ -32,6 +32,14 @@ export function useTutores() {
   });
 }
 
+export function useTutor(tutorId) {
+  return useQuery({
+    queryKey: tutoresKeys.lista,
+    queryFn: listarTutores,
+    select: (tutores) => tutores.find((tutor) => tutor.id === tutorId),
+  });
+}
+
 export function useSalvarTutor(tutorId) {
   const invalidarTutores = useInvalidarTutores();
 
