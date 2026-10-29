@@ -5,10 +5,12 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
+import { useCallback } from 'react';
 
 import { Carregando } from '../components';
 import { useAuth } from '../context/AuthContext';
 import { useTema } from '../context/TemaContext';
+import { useMonitorPetsCriticos } from '../hooks/useMonitorPetsCriticos';
 import CadastroScreen from '../screens/CadastroScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -18,6 +20,7 @@ import PetsScreen from '../screens/PetsScreen';
 import TutorDetailsScreen from '../screens/TutorDetailsScreen';
 import TutorFormScreen from '../screens/TutorFormScreen';
 import TutoresScreen from '../screens/TutoresScreen';
+import { navigationRef } from './navigationRef';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,6 +67,16 @@ function RotasPublicas() {
 
 function RotasAutenticadas() {
   const { cores } = useTema();
+
+  const abrirPet = useCallback((pet) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('PetDetails', { pet });
+    } else {
+      setTimeout(() => abrirPet(pet), 300);
+    }
+  }, []);
+
+  useMonitorPetsCriticos(abrirPet);
 
   return (
     <Stack.Navigator
@@ -124,7 +137,10 @@ export default function AppNavigator() {
   const { cores, escuro } = useTema();
 
   return (
-    <NavigationContainer theme={criarTemaNavegacao(cores, escuro)}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={criarTemaNavegacao(cores, escuro)}
+    >
       <StatusBar style={usuario || escuro ? 'light' : 'dark'} />
 
       {carregandoSessao ? (

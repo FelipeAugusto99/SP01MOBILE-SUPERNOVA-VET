@@ -14,6 +14,10 @@ export function filtrarPorRisco(pets, nivelRisco) {
   return pets.filter((pet) => pet.nivelRisco === nivelRisco);
 }
 
+export function identificarNovosCriticos(idsNotificados, petsCriticos) {
+  return petsCriticos.filter((pet) => !idsNotificados.includes(pet.id));
+}
+
 export function validarPet({ nome, idade, especie, tutor }) {
   if (!nome.trim() || !idade || !especie.trim()) {
     return 'Preencha todos os campos.';

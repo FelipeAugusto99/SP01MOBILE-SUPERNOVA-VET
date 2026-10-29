@@ -50,18 +50,21 @@ export function usePet(petId) {
   });
 }
 
-export function usePetsCriticos() {
+export function usePetsCriticos(opcoes = {}) {
   const { verTodosPets } = usePermissoes();
 
-  return useQuery(
-    verTodosPets
-      ? { queryKey: petsKeys.criticos, queryFn: listarPetsCriticos }
-      : {
-          queryKey: petsKeys.meus,
-          queryFn: listarMeusPets,
-          select: (pets) => filtrarPorRisco(pets, 'ALTO'),
-        }
-  );
+  const consulta = verTodosPets
+    ? { queryKey: petsKeys.criticos, queryFn: listarPetsCriticos }
+    : {
+        queryKey: petsKeys.meus,
+        queryFn: listarMeusPets,
+        select: (pets) => filtrarPorRisco(pets, 'ALTO'),
+      };
+
+  return useQuery({
+    ...consulta,
+    ...opcoes,
+  });
 }
 
 export function useSalvarPet(petId) {
