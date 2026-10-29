@@ -6,88 +6,91 @@ O projeto faz parte do sistema SuperNova VET e possui integração com uma API R
 
 ## Sobre o projeto
 
-O aplicativo permite que usuários autenticados realizem o gerenciamento dos dados da clínica.
+O aplicativo permite que a equipe da clínica (ADMIN e VETERINARIO) gerencie pets e tutores, e que tutores acompanhem os próprios pets.
 
-As principais funcionalidades são:
+Principais funcionalidades:
 
-- Login e autenticação
-- Cadastro de pets
-- Consulta de pets
-- Edição de pets
-- Exclusão de pets
-- Cadastro de tutores
-- Consulta de tutores
-- Edição de tutores
-- Exclusão de tutores
-- Visualização dos detalhes dos registros
-- Consulta de pets em situação crítica
-
-Os dados das funcionalidades principais são obtidos através da API REST.
+- Login com validação das credenciais na API (`/auth/me`)
+- Sessão persistente com AsyncStorage (fechar e reabrir o app mantém o login)
+- Logout pelo botão **Sair** no header da Home
+- Cadastro de novos usuários (perfil TUTOR) pela tela **Criar conta**
+- CRUD completo de pets e tutores
+- Filtro de pets por nível de risco (BAIXO, MEDIO, ALTO)
+- Telas adaptadas ao perfil logado (ADMIN, VETERINARIO, TUTOR)
+- Notificação local quando um pet entra em risco ALTO
+- Tema claro/escuro (automático pelo sistema ou escolhido pelo usuário)
+- Tela **Sobre o App** com versão e hash do commit da versão publicada
 
 ## Funcionalidades
 
-### Login
+### Autenticação
 
-O aplicativo possui uma tela de login integrada à API.
+- Login com e-mail e senha, validado na API via Basic Auth (`GET /auth/me`, que também retorna o perfil)
+- Credenciais salvas no AsyncStorage e restauradas ao abrir o app (o axios é reconfigurado no boot)
+- Se a API responder 401 com uma sessão ativa (senha alterada, usuário removido), a sessão é encerrada automaticamente
+- Logout no header da Home, com confirmação
+- Tela de cadastro de conta (`POST /auth/register`), que já autentica o usuário após criar a conta
 
-O login possui:
+### Perfis de acesso
 
-- Validação dos campos
-- Verificação das credenciais
-- Mensagem de erro para credenciais inválidas
-- Indicador de carregamento durante a requisição
-- Controle de acesso às demais telas após a autenticação
+| Ação | ADMIN | VETERINARIO | TUTOR |
+| --- | --- | --- | --- |
+| Ver todos os pets | Sim | Sim | Não |
+| Ver os próprios pets (`/pets/meus`) | Não | Não | Sim |
+| Cadastrar / editar pets | Sim | Sim | Não |
+| Excluir pets | Sim | Não | Não |
+| Gerenciar tutores | Sim | Não | Não |
 
-### Pets
+As regras ficam em `src/utils/permissoes.js` e espelham o Spring Security do backend.
 
-O módulo de pets possui as operações de CRUD:
+### Pets e Tutores
 
-- Cadastro de novos pets
-- Listagem dos pets cadastrados
-- Visualização dos detalhes
-- Edição dos dados
-- Exclusão de pets
+- Listagem, detalhes, cadastro, edição e exclusão
+- Filtro por nível de risco na lista de pets
+- Validações no formulário (campos obrigatórios, idade entre 0 e 30, e-mail, telefone com 10 ou 11 dígitos, senha com no mínimo 6 caracteres)
+- Após qualquer alteração as consultas são invalidadas pelo TanStack Query e as telas são atualizadas sem reiniciar o app
 
-Cada pet possui informações como nome, idade, espécie, nível de risco e tutor responsável.
+### Notificações (local)
 
-### Tutores
+Cenário: **um pet passa a ter nível de risco ALTO**.
 
-O módulo de tutores também possui operações de CRUD:
+- Enquanto o usuário está logado, o hook `useMonitorPetsCriticos` consulta os pets críticos a cada 30 segundos (e sempre que um pet é salvo no app)
+- Quando aparece um pet crítico que ainda não tinha sido notificado, o app dispara uma notificação local: "Pet em situação crítica: Rex (Cachorro) está com nível de risco ALTO"
+- O evento pode vir de uma ação no próprio app (cadastrar/editar um pet como ALTO) ou de outro usuário alterando o pet na API
+- Tocar na notificação abre a tela de **Detalhes do Pet**
+- Para o TUTOR, o monitoramento considera apenas os seus pets, então ele é avisado quando a clínica classifica um pet dele como crítico
 
-- Cadastro de novos tutores
-- Listagem dos tutores cadastrados
-- Visualização dos detalhes
-- Edição dos dados
-- Exclusão de tutores
+### Tema claro/escuro
 
-Os tutores possuem informações como nome, e-mail, telefone e perfil.
+O tema segue o sistema por padrão. Ele pode ser trocado pelo ícone de lua/sol no header da Home ou na tela Sobre o App (Sistema, Claro, Escuro). A escolha é salva no AsyncStorage.
 
-O sistema também trata situações em que um tutor possui pets vinculados, respeitando as regras de negócio definidas pela API.
+### Sobre o App
+
+Exibe nome, versão, hash do commit usado no build, endereço da API, usuário logado e a equipe. O hash é gerado no `app.config.js` (`EAS_BUILD_GIT_COMMIT_HASH` no EAS Build ou `git rev-parse HEAD` localmente).
 
 ## Telas
 
-O aplicativo possui as seguintes telas:
-
 1. Login
-2. Home
-3. Pets
-4. Detalhes do Pet
-5. Cadastro e edição de Pet
-6. Tutores
-7. Detalhes do Tutor
-8. Cadastro e edição de Tutor
-
-A navegação entre as telas é realizada utilizando React Navigation.
+2. Criar conta
+3. Home
+4. Pets
+5. Detalhes do Pet
+6. Cadastro e edição de Pet
+7. Tutores
+8. Detalhes do Tutor
+9. Cadastro e edição de Tutor
+10. Sobre o App
 
 ## Integração com a API
 
-A comunicação com a API é realizada utilizando Axios.
+A comunicação usa Axios (`src/services`) e o estado das requisições é controlado pelo TanStack Query, com os hooks isolados em `src/hooks`.
 
-As requisições são gerenciadas utilizando TanStack Query, que permite controlar os estados de carregamento, erros, cache e atualização dos dados após alterações.
-
-Principais endpoints utilizados:
+    GET    /auth/me
+    POST   /auth/register
 
     GET    /pets
+    GET    /pets/meus
+    GET    /pets/criticos
     POST   /pets
     PUT    /pets/{id}
     DELETE /pets/{id}
@@ -97,61 +100,65 @@ Principais endpoints utilizados:
     PUT    /tutores/{id}
     DELETE /tutores/{id}
 
-    GET    /pets/criticos
+## Arquitetura
 
-Após operações de cadastro, edição ou exclusão, os dados são atualizados utilizando o TanStack Query, sem necessidade de reiniciar o aplicativo.
+O código é separado em camadas:
+
+- **screens/**: apenas interface; não fazem chamadas HTTP nem declaram `useQuery`/`useMutation`
+- **components/**: blocos visuais reutilizáveis (Botao, CampoTexto, Card, Icone, BadgeRisco, Opcao, estados de carregamento/erro)
+- **hooks/**: hooks do TanStack Query (`usePets`, `useTutores`, `useCadastro`), permissões e monitoramento de pets críticos
+- **services/**: acesso à API e ao armazenamento local (axios, AsyncStorage, notificações)
+- **utils/**: regras de negócio puras (validações, montagem de payloads, permissões, mensagens de erro)
+- **context/**: autenticação e tema
+- **theme/**: paletas clara/escura e `useEstilos`
+- **navigation/**: rotas públicas e autenticadas
 
 ## Estrutura do projeto
 
     SP01MOBILE-SUPERNOVA-VET/
-    │
     ├── assets/
-    │
     ├── src/
-    │   ├── context/
-    │   │   └── AuthContext.js
-    │   │
-    │   ├── screens/
-    │   │   ├── LoginScreen.js
-    │   │   ├── HomeScreen.js
-    │   │   ├── PetsScreen.js
-    │   │   ├── PetDetailsScreen.js
-    │   │   ├── PetFormScreen.js
-    │   │   ├── TutoresScreen.js
-    │   │   ├── TutorDetailsScreen.js
-    │   │   └── TutorFormScreen.js
-    │   │
-    │   └── services/
-    │       ├── api.js
-    │       ├── petsService.js
-    │       └── tutoresService.js
-    │
+    │   ├── components/   Botao, CampoTexto, Card, Icone, BadgeRisco, Opcao, Estados, CabecalhoTela
+    │   ├── config/       queryClient.js
+    │   ├── context/      AuthContext.js, TemaContext.js
+    │   ├── hooks/        usePets, useTutores, useCadastro, usePermissoes,
+    │   │                 useMonitorPetsCriticos, useAtualizarAoFocar
+    │   ├── navigation/   AppNavigator.js, navigationRef.js
+    │   ├── screens/      Login, Cadastro, Home, Pets, PetDetails, PetForm,
+    │   │                 Tutores, TutorDetails, TutorForm, Sobre
+    │   ├── services/     api, authService, petsService, tutoresService,
+    │   │                 notificacoesService, sessaoStorage, petsCriticosStorage, appInfoService
+    │   ├── theme/        cores.js, useEstilos.js
+    │   └── utils/        erros, pets, tutores, permissoes
     ├── App.js
-    ├── app.json
-    ├── package.json
-    └── README.md
+    ├── app.json / app.config.js
+    ├── eas.json
+    ├── .env
+    └── package.json
 
 ## Tecnologias utilizadas
 
-- React Native
-- Expo
+- React Native + Expo
 - JavaScript
 - React Navigation
 - Axios
 - TanStack Query
 - AsyncStorage
-- API REST
-- Spring Boot
+- Expo Notifications
+- EAS Build + Firebase App Distribution
+- API REST em Spring Boot
 
 ## Backend
 
-O aplicativo utiliza a API do projeto SuperNova VET Java Advanced.
+O aplicativo utiliza a API do projeto SuperNova VET (Spring Boot + Oracle).
 
 Repositório:
 
-https://github.com/kaique-masc/SUPERNOVAVET_JAVA_ADVANCED
+https://github.com/FelipeAugusto99/SP4-SUPERNOVAVET-API
 
 O backend é responsável pela persistência dos dados, autenticação, validações e regras de negócio.
+
+A tela de cadastro usa o endpoint público `POST /auth/register`, que cria o usuário com perfil TUTOR.
 
 ## Como executar
 
@@ -179,35 +186,37 @@ Instale as dependências:
 
 ### Configuração da API
 
-Abra o arquivo:
+O endereço da API fica no arquivo `.env`:
 
-    src/services/api.js
+    EXPO_PUBLIC_API_URL=http://SEU_IP:8080
 
-Configure o endereço da API de acordo com o ambiente utilizado:
-
-    const api = axios.create({
-      baseURL: 'http://SEU_IP:8080',
-      timeout: 10000,
-    });
-
-Quando o aplicativo for executado em um celular físico, o computador e o celular devem estar conectados à mesma rede.
+Quando o aplicativo for executado em um celular físico com a API local, o computador e o celular devem estar na mesma rede. Para o app publicado, use o endereço público em que o backend está hospedado.
 
 ### Executando o projeto
-
-Inicie o Expo:
 
     npx expo start
 
 Depois, abra o projeto pelo Expo Go ou por um emulador compatível.
 
+## Publicação
+
+O APK é gerado com o EAS Build e distribuído pelo Firebase App Distribution:
+
+    npm install -g eas-cli
+    eas login
+    eas build -p android --profile preview
+
+O `eas.json` exige que tudo esteja commitado antes do build (`requireCommit`), garantindo que o hash exibido na tela Sobre o App corresponde ao código do repositório. O APK gerado é enviado ao Firebase App Distribution, com o e-mail do professor cadastrado como tester.
+
 ## Autenticação
 
 A autenticação utiliza as credenciais cadastradas no backend.
 
-O sistema possui diferentes perfis de acesso, como:
+O sistema possui os perfis:
 
-- ADMIN
-- VETERINARIO
+- ADMIN (`admin@supernovavet.com`)
+- VETERINARIO (`vet@supernovavet.com`)
+- TUTOR (contas criadas pela tela de cadastro)
 
 As permissões de cada operação são controladas pelo backend através do Spring Security.
 
