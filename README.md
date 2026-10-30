@@ -47,6 +47,7 @@ As regras ficam em `src/utils/permissoes.js` e espelham o Spring Security do bac
 
 - Listagem, detalhes, cadastro, edição e exclusão
 - Filtro por nível de risco na lista de pets
+- O nível de risco é calculado pela idade do pet, seguindo a regra do banco (trigger `trg_definir_risco_pet`): menos de 4 anos BAIXO, de 4 a 6 anos MEDIO e a partir de 7 anos ALTO. O formulário mostra o risco calculado enquanto a idade é digitada
 - Validações no formulário (campos obrigatórios, idade entre 0 e 30, e-mail, telefone com 10 ou 11 dígitos, senha com no mínimo 6 caracteres)
 - Após qualquer alteração as consultas são invalidadas pelo TanStack Query e as telas são atualizadas sem reiniciar o app
 
@@ -56,7 +57,7 @@ Cenário: **um pet passa a ter nível de risco ALTO**.
 
 - Enquanto o usuário está logado, o hook `useMonitorPetsCriticos` consulta os pets críticos a cada 30 segundos (e sempre que um pet é salvo no app)
 - Quando aparece um pet crítico que ainda não tinha sido notificado, o app dispara uma notificação local: "Pet em situação crítica: Rex (Cachorro) está com nível de risco ALTO"
-- O evento pode vir de uma ação no próprio app (cadastrar/editar um pet como ALTO) ou de outro usuário alterando o pet na API
+- O evento pode vir de uma ação no próprio app (cadastrar um pet com 7 anos ou mais, ou editar a idade de um pet para 7 anos ou mais) ou de outro usuário alterando o pet na API
 - Tocar na notificação abre a tela de **Detalhes do Pet**
 - Para o TUTOR, o monitoramento considera apenas os seus pets, então ele é avisado quando a clínica classifica um pet dele como crítico
 

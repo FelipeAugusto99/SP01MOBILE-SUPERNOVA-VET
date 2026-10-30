@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 
 import {
+  BadgeRisco,
   Botao,
   CampoTexto,
   Carregando,
@@ -17,8 +18,10 @@ import { useTutores } from '../hooks/useTutores';
 import { useEstilos } from '../theme/useEstilos';
 import { obterMensagemErro } from '../utils/erros';
 import {
+  calcularRiscoPorIdade,
+  IDADE_RISCO_ALTO,
+  IDADE_RISCO_MEDIO,
   montarDadosPet,
-  NIVEIS_RISCO,
   validarPet,
 } from '../utils/pets';
 
@@ -32,7 +35,6 @@ export default function PetFormScreen({ route, navigation }) {
     pet?.idade !== undefined ? String(pet.idade) : ''
   );
   const [especie, setEspecie] = useState(pet?.especie || '');
-  const [nivelRisco, setNivelRisco] = useState(pet?.nivelRisco || 'BAIXO');
   const [tutorSelecionado, setTutorSelecionado] = useState(pet?.tutor || null);
   const [erro, setErro] = useState('');
 
@@ -49,7 +51,6 @@ export default function PetFormScreen({ route, navigation }) {
       nome,
       idade,
       especie,
-      nivelRisco,
       tutor: tutorSelecionado,
     };
 
@@ -114,16 +115,18 @@ export default function PetFormScreen({ route, navigation }) {
         Nível de risco
       </Text>
 
-      <View style={styles.riscos}>
-        {NIVEIS_RISCO.map((risco) => (
-          <Opcao
-            key={risco}
-            titulo={risco}
-            selecionada={nivelRisco === risco}
-            onPress={() => setNivelRisco(risco)}
-            style={styles.risco}
-          />
-        ))}
+      <View style={styles.risco}>
+        {calcularRiscoPorIdade(idade) ? (
+          <BadgeRisco nivel={calcularRiscoPorIdade(idade)} />
+        ) : (
+          <Text style={styles.riscoPendente}>
+            Informe a idade
+          </Text>
+        )}
+
+        <Text style={styles.riscoAjuda}>
+          Calculado automaticamente pela idade: a partir de {IDADE_RISCO_MEDIO} anos é MEDIO e a partir de {IDADE_RISCO_ALTO} anos é ALTO.
+        </Text>
       </View>
 
       <Text style={styles.label}>
@@ -188,15 +191,20 @@ const criarEstilos = (cores) => ({
     marginBottom: 6,
   },
 
-  riscos: {
-    flexDirection: 'row',
-    gap: 8,
+  risco: {
     marginBottom: 25,
   },
 
-  risco: {
-    flex: 1,
-    alignItems: 'center',
+  riscoPendente: {
+    fontSize: 14,
+    color: cores.textoTerciario,
+  },
+
+  riscoAjuda: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: cores.textoSecundario,
+    marginTop: 8,
   },
 
   tutores: {
