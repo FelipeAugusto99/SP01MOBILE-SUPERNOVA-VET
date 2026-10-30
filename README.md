@@ -155,7 +155,7 @@ O aplicativo utiliza a API do projeto SuperNova VET (Spring Boot + Oracle).
 
 Repositório:
 
-https://github.com/FelipeAugusto99/SP4-SUPERNOVAVET-API
+https://github.com/kaique-masc/SUPERNOVAVET_JAVA_ADVANCED
 
 O backend é responsável pela persistência dos dados, autenticação, validações e regras de negócio.
 
