@@ -58,6 +58,13 @@
     ],
     "experiments": {
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "commitHash": "a85351ce76624374ebbc9844b15e3e22e27cd6e3",
+      "eas": {
+        "projectId": "34a0a4f3-bb93-44c6-aa89-954ab4744d14"
+      }
+    },
+    "owner": "felipeaugusto99"
   }
 }
