@@ -4,6 +4,17 @@ Aplicativo mobile desenvolvido em React Native com Expo para gerenciamento de pe
 
 O projeto faz parte do sistema SuperNova VET e possui integração com uma API REST desenvolvida em Spring Boot.
 
+## Vídeo de apresentação
+
+https://youtu.be/PglzwNdccvQ
+
+## Versão publicada
+
+- Distribuição: Firebase App Distribution (Android)
+- Versão: 1.0.0 (build 1)
+- Commit da versão publicada: `a338690` (o mesmo exibido na tela Sobre o App)
+- API utilizada: http://supernovavet-app-563982.brazilsouth.azurecontainer.io:8080 ([Swagger](http://supernovavet-app-563982.brazilsouth.azurecontainer.io:8080/swagger-ui/index.html))
+
 ## Sobre o projeto
 
 O aplicativo permite que a equipe da clínica (ADMIN e VETERINARIO) gerencie pets e tutores, e que tutores acompanhem os próprios pets.
