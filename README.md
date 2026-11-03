@@ -11,9 +11,18 @@ https://youtu.be/PglzwNdccvQ
 ## Versão publicada
 
 - Distribuição: Firebase App Distribution (Android)
-- Versão: 1.0.0 (build 1)
-- Commit da versão publicada: `a338690` (o mesmo exibido na tela Sobre o App)
-- API utilizada: http://supernovavet-app-563982.brazilsouth.azurecontainer.io:8080 ([Swagger](http://supernovavet-app-563982.brazilsouth.azurecontainer.io:8080/swagger-ui/index.html))
+- Versão atual: 1.0.1 (build 2)
+- Commit da versão publicada: `a8a77ef` (o mesmo exibido na tela Sobre o App)
+- API utilizada: http://supernovavet-app-565802.brazilsouth.azurecontainer.io:8080 ([Swagger](http://supernovavet-app-565802.brazilsouth.azurecontainer.io:8080/swagger-ui/index.html))
+
+**Histórico de versões**
+
+| Versão | Commit | O que mudou |
+| --- | --- | --- |
+| 1.0.0 (build 1) | `a338690` | Versão apresentada no vídeo |
+| 1.0.1 (build 2) | `a8a77ef` | Apenas o endereço da API |
+
+A versão 1.0.1 foi publicada porque a assinatura do Azure for Students que hospedava a API foi desativada pelo fim do período do crédito. A API foi republicada em outra assinatura do grupo, com o mesmo código e o mesmo banco Oracle. O código do app é idêntico ao da versão 1.0.0, exceto pela URL da API no `.env` e pelo número da versão no `app.json`.
 
 ## Sobre o projeto
 
