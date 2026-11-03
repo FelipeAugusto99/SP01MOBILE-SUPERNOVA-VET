@@ -2,7 +2,7 @@
   "expo": {
     "name": "SuperNova VET",
     "slug": "supernova-vet",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "supernovavet",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "br.com.fiap.supernovavet",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -60,7 +60,6 @@
       "reactCompiler": true
     },
     "extra": {
-      "commitHash": "a85351ce76624374ebbc9844b15e3e22e27cd6e3",
       "eas": {
         "projectId": "34a0a4f3-bb93-44c6-aa89-954ab4744d14"
       }
